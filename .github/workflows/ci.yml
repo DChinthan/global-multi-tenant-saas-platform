@@ -3,7 +3,7 @@ name: Terraform CI
 on:
   pull_request:
   push:
-    branches: ["main"]
+    branches: ["main","chore/phase-0-bootstrap"]
 
 jobs:
   terraform:
