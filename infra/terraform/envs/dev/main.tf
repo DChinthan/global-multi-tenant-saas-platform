@@ -3,8 +3,8 @@ module "vpc" {
   project     = var.project
   environment = var.environment
 
-  enable_nat  = var.enable_nat
-  cidr_block  = "10.10.0.0/16"
+  enable_nat = var.enable_nat
+  cidr_block = "10.10.0.0/16"
 }
 
 module "rds" {
