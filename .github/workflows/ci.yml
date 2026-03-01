@@ -52,16 +52,26 @@ jobs:
         with:
           tflint_version: v0.53.0
 
-      - name: TFLint
+      - name: TFLint (per env + module)
         working-directory: infra/terraform
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           CONFIG_PATH="$(pwd)/.tflint.hcl"
           echo "=== Using config: $CONFIG_PATH ==="
-          cat .tflint.hcl
           tflint --init --config "$CONFIG_PATH"
-          tflint --recursive --config "$CONFIG_PATH"
+
+          # Lint root modules (envs)
+          for d in envs/dev envs/stage envs/prod; do
+            echo "=== tflint: $d ==="
+            tflint --chdir "$d" --config "$CONFIG_PATH"
+          done
+
+          # Lint reusable modules
+          for d in modules/vpc modules/rds modules/opensearch modules/kinesis; do
+            echo "=== tflint: $d ==="
+            tflint --chdir "$d" --config "$CONFIG_PATH"
+          done
 
       - name: tfsec (security scan)
         uses: aquasecurity/tfsec-action@v1.0.3
