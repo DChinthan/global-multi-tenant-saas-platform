@@ -61,7 +61,7 @@ jobs:
           echo "=== Using config: $CONFIG_PATH ==="
           tflint --init --config "$CONFIG_PATH"
 
-          # Lint root modules (envs)
+          # Lint environment roots
           for d in envs/dev envs/stage envs/prod; do
             echo "=== tflint: $d ==="
             tflint --chdir "$d" --config "$CONFIG_PATH"
@@ -77,3 +77,5 @@ jobs:
         uses: aquasecurity/tfsec-action@v1.0.3
         with:
           working_directory: infra/terraform
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
