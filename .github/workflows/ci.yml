@@ -11,6 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     strategy:
+      fail-fast: false
       matrix:
         env: [dev, stage, prod]
 
@@ -56,8 +57,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          tflint --init
-          tflint --recursive
+          echo "=== Using infra/terraform/.tflint.hcl ==="
+          cat .tflint.hcl
+          tflint --init --config .tflint.hcl
+          tflint --recursive --config .tflint.hcl
 
       - name: tfsec (security scan)
         uses: aquasecurity/tfsec-action@v1.0.3
