@@ -15,19 +15,12 @@ config {
   call_module_type = "all"
 }
 
-# 🔧 Phase 0 / Phase 2 scaffolding — allow placeholders
-rule "terraform_unused_declarations" {
-  enabled = false
-}
+# Disable documentation noise during scaffolding
+rule "terraform_documented_variables" { enabled = false }
+rule "terraform_documented_outputs" { enabled = false }
 
-rule "terraform_required_version" {
-  enabled = false
-}
+# Disable provider noise during design phase
+rule "terraform_unused_required_providers" { enabled = false }
 
-rule "terraform_standard_module_structure" {
-  enabled = false
-}
-
-rule "terraform_required_providers" {
-  enabled = true
-}
+# Keep important structural checks
+rule "terraform_required_providers" { enabled = true }
