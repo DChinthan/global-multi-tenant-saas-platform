@@ -57,10 +57,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "=== Using infra/terraform/.tflint.hcl ==="
+          CONFIG_PATH="$(pwd)/.tflint.hcl"
+          echo "=== Using config: $CONFIG_PATH ==="
           cat .tflint.hcl
-          tflint --init --config .tflint.hcl
-          tflint --recursive --config .tflint.hcl
+          tflint --init --config "$CONFIG_PATH"
+          tflint --recursive --config "$CONFIG_PATH"
 
       - name: tfsec (security scan)
         uses: aquasecurity/tfsec-action@v1.0.3
