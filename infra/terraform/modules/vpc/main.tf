@@ -5,10 +5,9 @@ resource "aws_vpc" "this" {
   }
 }
 
-# Example NAT resource toggled (placeholder)
-resource "aws_nat_gateway" "this" {
-  count = var.enable_nat ? 1 : 0
-
-  allocation_id = "PLACEHOLDER" # keep design-only unless deploying
-  subnet_id     = "PLACEHOLDER"
-}
+# NAT Gateway will be implemented in Phase 3
+# Requires:
+# - Public subnet
+# - Elastic IP
+# - Internet Gateway
+# - Route tables

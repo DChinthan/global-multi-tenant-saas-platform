@@ -1,22 +1,6 @@
-variable "project" {
-  type = string
-}
-
-variable "environment" {
-  type = string
-}
-
-variable "vpc_id" {
-  type = string
-}
-
-variable "subnet_ids" {
-  type = list(string)
-}
-
-variable "instance_type" {
+variable "env" {
   type    = string
-  default = "t3.small.search"
+  default = "stage"
 }
 
 variable "aws_region" {
