@@ -11,6 +11,11 @@ variable "environment" {
   type = string
 }
 
+variable "cidr_block" {
+  type        = string
+  description = "VPC CIDR block for this environment (e.g., 10.10.0.0/16)"
+}
+
 # Cost-safety toggles
 variable "enable_nat" {
   type    = bool

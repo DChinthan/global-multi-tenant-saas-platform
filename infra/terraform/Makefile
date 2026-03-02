@@ -1,30 +1,61 @@
-# Default environment
+############################################
+# Terraform Makefile (Root Level)
+############################################
+
+# Default environment (can override: make tf-plan ENV=stage)
 ENV ?= dev
-TF_DIR = envs/$(ENV)
 
-.PHONY: tf-fmt tf-init tf-validate tf-plan lint sec
+# Base Terraform directory
+TF_BASE_DIR = infra/terraform
+TF_ENV_DIR  = $(TF_BASE_DIR)/envs/$(ENV)
 
-# Format all Terraform code
+.PHONY: tf-fmt tf-init tf-validate tf-plan tf-apply tf-destroy lint sec
+
+############################################
+# Format all Terraform code (entire repo)
+############################################
 tf-fmt:
-	terraform fmt -recursive
+	terraform -chdir=$(TF_BASE_DIR) fmt -recursive
 
+############################################
 # Initialize selected environment
+############################################
 tf-init:
-	cd $(TF_DIR) && terraform init -backend=false
+	terraform -chdir=$(TF_ENV_DIR) init
 
+############################################
 # Validate selected environment
+############################################
 tf-validate:
-	cd $(TF_DIR) && terraform init -backend=false && terraform validate
+	terraform -chdir=$(TF_ENV_DIR) validate
 
+############################################
 # Plan selected environment
+############################################
 tf-plan:
-	cd $(TF_DIR) && terraform init -backend=false && terraform plan
+	terraform -chdir=$(TF_ENV_DIR) plan
 
+############################################
+# Apply selected environment
+############################################
+tf-apply:
+	terraform -chdir=$(TF_ENV_DIR) apply
+
+############################################
+# Destroy selected environment
+############################################
+tf-destroy:
+	terraform -chdir=$(TF_ENV_DIR) destroy
+
+############################################
 # Lint entire Terraform repo
+############################################
 lint:
 	tflint --init
-	tflint --recursive
+	tflint --recursive $(TF_BASE_DIR)
 
+############################################
 # Security scan entire Terraform repo
+############################################
 sec:
-	tfsec .
+	tfsec $(TF_BASE_DIR)

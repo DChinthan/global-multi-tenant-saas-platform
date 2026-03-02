@@ -2,6 +2,9 @@ aws_region  = "us-east-1"
 project     = "global-mt-saas"
 environment = "dev"
 
+cidr_block = "10.10.0.0/16"
+
+
 # cost safety (OFF by default)
 enable_nat        = false
 enable_rds        = false

@@ -1,12 +1,20 @@
 module "vpc" {
-  source      = "../../modules/vpc"
+  source = "../../modules/vpc"
+
   project     = var.project
   environment = var.environment
 
-  enable_nat = var.enable_nat
-  cidr_block = "10.10.0.0/16"
-}
+  cidr_block = var.cidr_block
 
+  az_count = 3
+
+  enable_nat               = var.enable_nat
+  enable_gateway_endpoints = true
+
+  tags = {
+    Env = var.environment
+  }
+}
 module "rds" {
   source = "../../modules/rds"
   count  = var.enable_rds ? 1 : 0

@@ -3,6 +3,11 @@ variable "env" {
   default = "dev"
 }
 
+variable "cidr_block" {
+  type        = string
+  description = "VPC CIDR block for this environment (e.g., 10.10.0.0/16)"
+}
+
 variable "aws_region" {
   type    = string
   default = "us-east-1"
