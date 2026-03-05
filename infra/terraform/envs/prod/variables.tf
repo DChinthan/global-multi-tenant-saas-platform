@@ -44,3 +44,18 @@ variable "opensearch_instance_type" {
   type    = string
   default = "t3.small.search"
 }
+
+variable "enable_cloudtrail" {
+  type    = bool
+  default = true
+}
+
+variable "enable_config" {
+  type    = bool
+  default = false
+}
+
+variable "enable_security_services" {
+  type    = bool
+  default = false
+}

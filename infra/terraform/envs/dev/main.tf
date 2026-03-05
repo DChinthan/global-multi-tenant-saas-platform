@@ -15,6 +15,22 @@ module "vpc" {
     Env = var.environment
   }
 }
+
+module "security" {
+  source = "../../modules/security"
+
+  project     = var.project
+  environment = var.environment
+
+  enable_cloudtrail        = true
+  enable_config            = false
+  enable_security_services = false
+
+  tags = {
+    Env = var.environment
+  }
+}
+
 module "rds" {
   source = "../../modules/rds"
   count  = var.enable_rds ? 1 : 0
@@ -45,3 +61,4 @@ module "kinesis" {
   project     = var.project
   environment = var.environment
 }
+
