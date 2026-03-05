@@ -19,20 +19,29 @@
 *.tar.gz
 *.rar
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+# virtual machine crash logs
 hs_err_pid*
 replay_pid*
 
+############################################
 # Terraform
-**/.terraform/
-**/*.tfstate
-**/*.tfstate.*
+############################################
+**/.terraform/*
+*.tfstate
+*.tfstate.*
 crash.log
 crash.*.log
 
-# OS junk
-.DS_Store
+# Optional: local variables/secrets files (keep uncommitted)
+*.tfvars
+*.tfvars.json
 
-**/.terraform/*
-**/.terraform.lock.hcl
-errors.md
+# NOTE: do NOT ignore the lock file; it should be committed
+# .terraform.lock.hcl
+
+############################################
+# OS / Editor
+############################################
+.DS_Store
+.vscode/
+.idea/
