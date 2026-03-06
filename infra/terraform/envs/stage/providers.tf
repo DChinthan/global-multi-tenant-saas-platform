@@ -8,7 +8,7 @@ provider "aws" {
     tags = {
       Project   = "global-mt-saas"
       ManagedBy = "terraform"
-      Env       = var.env
+      Env       = var.environment
     }
   }
 }
