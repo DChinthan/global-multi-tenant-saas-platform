@@ -38,8 +38,8 @@ module "edge" {
   environment = var.environment
 
   # CHANGE THESE:
-  domain_name     = "example.com"
-  app_subdomain   = "app"
+  domain_name        = "example.com"
+  app_subdomain      = "app"
   origin_domain_name = "example-origin.example.com" # temporary placeholder
 
   enable_waf = true
