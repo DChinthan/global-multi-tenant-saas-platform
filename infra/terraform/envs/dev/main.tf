@@ -31,6 +31,25 @@ module "security" {
   }
 }
 
+module "edge" {
+  source = "../../modules/edge"
+
+  project     = var.project
+  environment = var.environment
+
+  # CHANGE THESE:
+  domain_name        = "example.com"
+  app_subdomain      = "app"
+  origin_domain_name = "example-origin.example.com" # temporary placeholder
+
+  enable_waf = true
+
+  providers = {
+    aws           = aws
+    aws.us_east_1 = aws.us_east_1
+  }
+}
+
 module "rds" {
   source = "../../modules/rds"
   count  = var.enable_rds ? 1 : 0
