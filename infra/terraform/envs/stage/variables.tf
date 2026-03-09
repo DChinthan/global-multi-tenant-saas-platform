@@ -62,3 +62,22 @@ variable "enable_security_services" {
   type    = bool
   default = false
 }
+
+variable "enable_identity" {
+  type    = bool
+  default = true
+}
+
+variable "cognito_domain_prefix" {
+  type = string
+}
+
+variable "callback_urls" {
+  type    = list(string)
+  default = []
+}
+
+variable "logout_urls" {
+  type    = list(string)
+  default = []
+}

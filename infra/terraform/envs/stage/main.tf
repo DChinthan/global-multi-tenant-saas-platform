@@ -33,6 +33,22 @@ module "security" {
   }
 }
 
+module "identity" {
+  source = "../../modules/identity"
+
+  project     = var.project
+  environment = var.environment
+
+  enable_identity       = var.enable_identity
+  cognito_domain_prefix = var.cognito_domain_prefix
+  callback_urls         = var.callback_urls
+  logout_urls           = var.logout_urls
+
+  tags = {
+    Env = var.environment
+  }
+}
+
 module "rds" {
   source = "../../modules/rds"
   count  = var.enable_rds ? 1 : 0
