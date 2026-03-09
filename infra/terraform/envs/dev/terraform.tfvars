@@ -14,3 +14,8 @@ enable_kinesis    = false
 # sizing knobs
 rds_instance_class       = "db.t4g.micro"
 opensearch_instance_type = "t3.small.search"
+
+enable_identity       = true
+cognito_domain_prefix = "mt-saas-dev-auth-chinthan"
+callback_urls         = ["http://localhost:3000/callback"]
+logout_urls           = ["http://localhost:3000/logout"]
