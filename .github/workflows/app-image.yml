@@ -19,22 +19,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: YOUR_GITHUB_OIDC_ROLE_ARN
-          aws-region: us-east-1
+      # - name: Configure AWS credentials
+      #   uses: aws-actions/configure-aws-credentials@v4
+      #   with:
+      #     role-to-assume: YOUR_GITHUB_OIDC_ROLE_ARN
+      #     aws-region: us-east-1
 
-      - name: Login to ECR
-        uses: aws-actions/amazon-ecr-login@v2
+      # - name: Login to ECR
+      #   uses: aws-actions/amazon-ecr-login@v2
 
       - name: Build image
         run: |
           docker build -t app-image ./services/app
-          docker tag app-image:latest YOUR_ECR_REPO_URL:${{ github.sha }}
-          docker tag app-image:latest YOUR_ECR_REPO_URL:latest
 
-      - name: Push image
-        run: |
-          docker push YOUR_ECR_REPO_URL:${{ github.sha }}
-          docker push YOUR_ECR_REPO_URL:latest
+      # - name: Tag image
+      #   run: |
+      #     docker tag app-image:latest YOUR_ECR_REPO_URL:${{ github.sha }}
+      #     docker tag app-image:latest YOUR_ECR_REPO_URL:latest
+
+      # - name: Push image
+      #   run: |
+      #     docker push YOUR_ECR_REPO_URL:${{ github.sha }}
+      #     docker push YOUR_ECR_REPO_URL:latest
