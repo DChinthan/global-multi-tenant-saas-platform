@@ -78,3 +78,9 @@ variable "logout_urls" {
   type    = list(string)
   default = []
 }
+
+variable "tags" {
+  description = "Common tags for resources"
+  type        = map(string)
+  default     = {}
+}

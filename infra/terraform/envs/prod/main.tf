@@ -47,6 +47,26 @@ module "identity" {
     Env = var.environment
   }
 }
+module "compute" {
+  source = "../../modules/compute"
+
+  project            = var.project
+  environment        = var.environment
+  tags               = var.tags
+  vpc_id             = module.vpc.vpc_id
+  public_subnet_ids  = module.vpc.public_subnet_ids
+  private_subnet_ids = module.vpc.private_app_subnet_ids
+
+  container_port    = 8080
+  desired_count     = 2
+  cpu               = 512
+  memory            = 1024
+  app_image_tag     = "latest"
+  health_check_path = "/health"
+
+  enable_lambda      = true
+  enable_api_gateway = true
+}
 
 module "rds" {
   source = "../../modules/rds"
