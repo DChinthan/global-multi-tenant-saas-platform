@@ -50,12 +50,12 @@ module "identity" {
 module "compute" {
   source = "../../modules/compute"
 
-  project            = var.project
-  environment        = var.environment
-  tags               = var.tags
-  vpc_id             = module.vpc.vpc_id
-  public_subnet_ids  = module.vpc.public_subnet_ids
-  private_subnet_ids = module.vpc.private_app_subnet_ids
+  project                = var.project
+  environment            = var.environment
+  tags                   = var.tags
+  vpc_id                 = module.vpc.vpc_id
+  public_subnet_ids      = module.vpc.public_subnet_ids
+  private_app_subnet_ids = module.vpc.private_app_subnet_ids
 
   container_port    = 8080
   desired_count     = 2
@@ -66,6 +66,29 @@ module "compute" {
 
   enable_lambda      = true
   enable_api_gateway = true
+}
+
+module "data" {
+  source = "../../modules/data"
+
+  project     = var.project
+  environment = var.environment
+  tags        = var.tags
+
+  vpc_id                  = module.vpc.vpc_id
+  private_data_subnet_ids = module.vpc.private_data_subnet_ids
+  app_security_group_id   = module.compute.app_security_group_id
+
+  enable_aurora              = false
+  aurora_database_name       = "appdb"
+  aurora_master_username     = "dbadmin"
+  aurora_instance_count      = 1
+  aurora_min_capacity        = 0.5
+  aurora_max_capacity        = 1
+  backup_retention_period    = 7
+  enable_deletion_protection = false
+
+  enable_s3_access_points = false
 }
 
 module "rds" {
