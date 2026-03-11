@@ -52,11 +52,11 @@ module "identity" {
 module "compute" {
   source = "../../modules/compute"
 
-  project            = var.project
-  environment        = var.environment
-  tags               = var.tags
-  vpc_id             = module.vpc.vpc_id
-  public_subnet_ids  = module.vpc.public_subnet_ids
+  project                = var.project
+  environment            = var.environment
+  tags                   = var.tags
+  vpc_id                 = module.vpc.vpc_id
+  public_subnet_ids      = module.vpc.public_subnet_ids
   private_app_subnet_ids = module.vpc.private_app_subnet_ids
 
   container_port    = 8080
