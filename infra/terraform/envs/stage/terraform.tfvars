@@ -1,7 +1,9 @@
 project     = "global-multi-tenant-saas-platform"
 environment = "stage"
 cidr_block  = "10.10.0.0/16"
-
+tags = {
+  Owner = "Chinthan"
+}
 
 enable_nat        = false
 enable_rds        = false

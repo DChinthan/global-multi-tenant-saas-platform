@@ -37,3 +37,7 @@ output "webhook_api_endpoint" {
 output "webhook_events_url" {
   value = var.enable_api_gateway ? "${aws_apigatewayv2_api.webhook[0].api_endpoint}/webhooks/events" : null
 }
+
+output "app_security_group_id" {
+  value = aws_security_group.ecs_service.id
+}
