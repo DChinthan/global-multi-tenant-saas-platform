@@ -91,6 +91,78 @@ module "data" {
   enable_s3_access_points = false
 }
 
+module "event_backbone" {
+  source = "../../modules/event_backbone"
+
+  project     = var.project
+  environment = var.environment
+  tags        = var.tags
+
+  kms_key_arn = module.security.kms_key_arn
+
+  enable_kinesis = var.enable_kinesis
+
+  tenant_onboarding_definition = jsonencode({
+    Comment = "Tenant onboarding workflow"
+    StartAt = "PublishTenantCreated"
+    States = {
+      PublishTenantCreated = {
+        Type     = "Task"
+        Resource = "arn:aws:states:::events:putEvents"
+        Arguments = {
+          Entries = [
+            {
+              Source       = "saas.platform"
+              DetailType   = "tenant.created"
+              EventBusName = "${var.project}-${var.environment}-domain-bus"
+              Detail = {
+                status = "created"
+              }
+            }
+          ]
+        }
+        End = true
+      }
+    }
+  })
+
+  anomaly_detection_definition = jsonencode({
+    Comment = "Anomaly detection pipeline"
+    StartAt = "QueueAnomalyJob"
+    States = {
+      QueueAnomalyJob = {
+        Type     = "Task"
+        Resource = "arn:aws:states:::sqs:sendMessage"
+        Arguments = {
+          QueueUrl = "REPLACE_AT_MODULE_LEVEL"
+          MessageBody = {
+            job = "anomaly-detection"
+          }
+        }
+        End = true
+      }
+    }
+  })
+
+  report_generation_definition = jsonencode({
+    Comment = "Report generation workflow"
+    StartAt = "PublishReportRequested"
+    States = {
+      PublishReportRequested = {
+        Type     = "Task"
+        Resource = "arn:aws:states:::sns:publish"
+        Arguments = {
+          TopicArn = "REPLACE_AT_MODULE_LEVEL"
+          Message = {
+            action = "generate-report"
+          }
+        }
+        End = true
+      }
+    }
+  })
+}
+
 module "rds" {
   source = "../../modules/rds"
   count  = var.enable_rds ? 1 : 0
