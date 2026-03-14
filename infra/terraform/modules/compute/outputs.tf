@@ -41,3 +41,12 @@ output "webhook_events_url" {
 output "app_security_group_id" {
   value = aws_security_group.ecs_service.id
 }
+
+output "alb_name" {
+  value = aws_lb.app.name
+}
+
+output "alb_arn_suffix" {
+  value = aws_lb.app.arn_suffix
+}
+

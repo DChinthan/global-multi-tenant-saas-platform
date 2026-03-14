@@ -32,9 +32,27 @@ resource "aws_apigatewayv2_stage" "webhook" {
   name        = "$default"
   auto_deploy = true
 
+  access_log_settings {
+    destination_arn = var.apigw_log_group_arn
+
+    format = jsonencode({
+      requestId           = "$context.requestId"
+      sourceIp            = "$context.identity.sourceIp"
+      requestTime         = "$context.requestTime"
+      httpMethod          = "$context.httpMethod"
+      routeKey            = "$context.routeKey"
+      status              = "$context.status"
+      responseLength      = "$context.responseLength"
+      integrationError    = "$context.integrationErrorMessage"
+      integrationStatus   = "$context.integration.status"
+      routeResponseStatus = "$context.routeResponse.status"
+    })
+  }
+
   default_route_settings {
-    throttling_burst_limit = 10
-    throttling_rate_limit  = 5
+    throttling_burst_limit   = 10
+    throttling_rate_limit    = 5
+    detailed_metrics_enabled = true
   }
 
   tags = local.common_tags

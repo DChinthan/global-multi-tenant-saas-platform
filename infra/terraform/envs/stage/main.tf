@@ -58,6 +58,8 @@ module "compute" {
   vpc_id                 = module.vpc.vpc_id
   public_subnet_ids      = module.vpc.public_subnet_ids
   private_app_subnet_ids = module.vpc.private_app_subnet_ids
+  ecs_log_group_name     = module.observability.ecs_log_group_name
+  apigw_log_group_arn    = module.observability.apigw_log_group_arn
 
   container_port    = 8080
   desired_count     = 2
@@ -164,6 +166,34 @@ module "event_backbone" {
     }
   })
 }
+
+module "observability" {
+  source = "../../modules/observability"
+
+  project                = var.project
+  environment            = var.environment
+  region                 = var.aws_region
+  tags                   = var.tags
+  kms_key_arn            = module.security.kms_key_arn
+  log_retention_days     = 30
+  enable_xray            = true
+  enable_cloudtrail      = true
+  enable_athena          = true
+  audit_logs_bucket_name = module.data.audit_logs_bucket_id
+
+  alb_name               = module.compute.alb_name
+  alb_arn_suffix         = module.compute.alb_arn_suffix
+  ecs_cluster_name       = module.compute.ecs_cluster_name
+  ecs_service_name       = module.compute.ecs_service_name
+  lambda_function_name   = module.compute.lambda_webhook_handler_name
+  api_gateway_id         = module.compute.webhook_api_id
+  api_gateway_stage_name = "default"
+
+  rds_instance_id     = module.data.rds_instance_id
+  sns_alert_topic_arn = module.event_backbone.alerts_topic_arn
+  vpc_id              = module.vpc.vpc_id
+}
+
 
 module "rds" {
   source = "../../modules/rds"

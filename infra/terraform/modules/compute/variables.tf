@@ -83,3 +83,13 @@ variable "lambda_zip_path" {
   default     = "artifacts/webhook-handler.zip"
 }
 
+variable "ecs_log_group_name" {
+  description = "CloudWatch log group for ECS container logs"
+  type        = string
+}
+
+variable "apigw_log_group_arn" {
+  description = "CloudWatch log group ARN for API Gateway access logs"
+  type        = string
+  default     = null
+}
