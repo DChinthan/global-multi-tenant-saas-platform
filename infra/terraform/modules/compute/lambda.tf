@@ -56,5 +56,13 @@ resource "aws_lambda_function" "webhook_handler" {
     aws_cloudwatch_log_group.webhook_handler
   ]
 
+  ############################################
+  # Enable X-Ray Tracing
+  ############################################
+  tracing_config {
+    mode = "Active"
+  }
+
+
   tags = local.common_tags
 }

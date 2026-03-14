@@ -25,6 +25,7 @@ resource "aws_ecs_cluster" "main" {
 }
 
 ################################################
+################################################
 # ECS Task Definition
 ################################################
 
@@ -51,19 +52,31 @@ resource "aws_ecs_task_definition" "app" {
         }
       ]
 
+      ################################################
+      # CloudWatch Logging (Phase 10 Observability)
+      ################################################
+
       logConfiguration = {
         logDriver = "awslogs"
         options = {
-          awslogs-group         = aws_cloudwatch_log_group.ecs.name
+          awslogs-group         = var.ecs_log_group_name
           awslogs-region        = data.aws_region.current.name
-          awslogs-stream-prefix = "ecs"
+          awslogs-stream-prefix = "app"
         }
       }
+
+      ################################################
+      # Environment Variables
+      ################################################
 
       environment = [
         {
           name  = "APP_ENV"
           value = var.environment
+        },
+        {
+          name  = "AWS_XRAY_TRACING_NAME"
+          value = "${var.project}-${var.environment}-app"
         }
       ]
     }
@@ -71,6 +84,7 @@ resource "aws_ecs_task_definition" "app" {
 
   tags = local.common_tags
 }
+
 
 ################################################
 # ECS Service

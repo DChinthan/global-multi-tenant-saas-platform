@@ -41,3 +41,4 @@ output "report_generation_state_machine_arn" {
 output "kinesis_stream_name" {
   value = var.enable_kinesis ? aws_kinesis_stream.high_volume_logs[0].name : null
 }
+

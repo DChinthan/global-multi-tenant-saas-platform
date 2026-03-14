@@ -41,3 +41,11 @@ output "exports_bucket_name" {
 output "tenant_reports_bucket_name" {
   value = aws_s3_bucket.tenant_reports.bucket
 }
+
+output "audit_logs_bucket_id" {
+  value = aws_s3_bucket.audit_logs.id
+}
+
+output "rds_instance_id" {
+  value = try(aws_rds_cluster.aurora[0].id, null)
+}
