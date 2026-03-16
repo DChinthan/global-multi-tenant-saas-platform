@@ -211,6 +211,29 @@ module "observability" {
   vpc_id              = module.vpc.vpc_id
 }
 
+module "analytics" {
+  source = "../../modules/analytics"
+
+  project                    = var.project
+  environment                = var.environment
+  region                     = var.aws_region
+  tags                       = var.tags
+
+  analytics_bucket_name      = module.data.tenant_reports_bucket_name
+  athena_results_bucket_name = module.data.exports_bucket_name
+
+  crawler_s3_target_path     = "analytics/"
+  crawler_schedule           = "cron(0 3 * * ? *)"
+
+  enable_glue_crawler        = true
+  enable_athena              = true
+  enable_scheduled_reports   = true
+
+  report_schedule_expression = "cron(0 8 * * ? *)"
+  report_timezone            = "America/Toronto"
+  report_output_prefix       = "scheduled-reports/"
+}
+
 module "rds" {
   source = "../../modules/rds"
   count  = var.enable_rds ? 1 : 0
