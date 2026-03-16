@@ -99,12 +99,12 @@ resource "aws_lambda_function" "reporting" {
 
   environment {
     variables = {
-      ATHENA_DATABASE       = local.glue_database_name
-      ATHENA_WORKGROUP      = aws_athena_workgroup.analytics[0].name
-      ATHENA_OUTPUT_S3      = "s3://${var.athena_results_bucket_name}/athena-results/"
-      REPORT_BUCKET         = var.analytics_bucket_name
-      REPORT_PREFIX         = var.report_output_prefix
-      TENANT_SUMMARY_QUERY  = "SELECT tenant_id, count(*) AS total_requests FROM api_events GROUP BY tenant_id ORDER BY total_requests DESC"
+      ATHENA_DATABASE      = local.glue_database_name
+      ATHENA_WORKGROUP     = aws_athena_workgroup.analytics[0].name
+      ATHENA_OUTPUT_S3     = "s3://${var.athena_results_bucket_name}/athena-results/"
+      REPORT_BUCKET        = var.analytics_bucket_name
+      REPORT_PREFIX        = var.report_output_prefix
+      TENANT_SUMMARY_QUERY = "SELECT tenant_id, count(*) AS total_requests FROM api_events GROUP BY tenant_id ORDER BY total_requests DESC"
     }
   }
 

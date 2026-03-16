@@ -17,12 +17,7 @@ resource "aws_glue_crawler" "analytics" {
     path = "s3://${var.analytics_bucket_name}/${var.crawler_s3_target_path}"
   }
 
-  dynamic "schedule" {
-    for_each = var.crawler_schedule != null ? [1] : []
-    content {
-      schedule_expression = var.crawler_schedule
-    }
-  }
+  schedule = var.crawler_schedule
 
   schema_change_policy {
     update_behavior = "UPDATE_IN_DATABASE"
