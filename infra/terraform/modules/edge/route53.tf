@@ -6,8 +6,11 @@ resource "aws_route53_zone" "primary" {
   })
 }
 
-# Alias record to CloudFront distribution (created later)
+# Create the normal app alias only when Route53 failover is NOT enabled.
+# If failover is enabled, the disaster_recovery module will create the
+# primary/secondary failover records instead.
 resource "aws_route53_record" "app_alias" {
+  count   = var.enable_route53_failover ? 0 : 1
   zone_id = aws_route53_zone.primary.zone_id
   name    = local.fqdn
   type    = "A"

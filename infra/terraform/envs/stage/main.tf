@@ -33,6 +33,27 @@ module "security" {
   }
 }
 
+module "edge" {
+  source = "../../modules/edge"
+
+  project     = var.project
+  environment = var.environment
+
+  # CHANGE THESE:
+  domain_name        = "example.com"
+  app_subdomain      = "app"
+  origin_domain_name = "example-origin.example.com" # temporary placeholder
+  enable_route53_failover = var.enable_route53_failover
+
+
+  enable_waf = true
+
+  providers = {
+    aws           = aws
+    aws.us_east_1 = aws.us_east_1
+  }
+}
+
 module "identity" {
   source = "../../modules/identity"
 
@@ -215,6 +236,39 @@ module "analytics" {
   report_schedule_expression = "cron(0 8 * * ? *)"
   report_timezone            = "America/Toronto"
   report_output_prefix       = "scheduled-reports/"
+}
+
+module "disaster_recovery" {
+  source = "../../modules/disaster_recovery"
+
+  project_name              = var.project_name
+  environment               = var.environment
+  aws_region                = var.aws_region
+  secondary_region          = var.secondary_region
+
+  enable_disaster_recovery  = var.enable_disaster_recovery
+  enable_s3_replication     = var.enable_s3_replication
+  enable_route53_failover   = var.enable_route53_failover
+  enable_backup_plan        = var.enable_backup_plan
+  enable_kms_multi_region   = var.enable_kms_multi_region
+
+  hosted_zone_id            = var.hosted_zone_id
+  domain_name               = var.domain_name
+
+  primary_alb_dns_name      = module.compute.alb_dns_name
+  primary_alb_zone_id       = module.compute.alb_zone_id
+
+  # placeholder until true secondary stack exists
+  secondary_alb_dns_name    = var.secondary_alb_dns_name
+  secondary_alb_zone_id     = var.secondary_alb_zone_id
+
+  replication_bucket_mappings = var.replication_bucket_mappings
+
+  backup_resource_arns = compact([
+    try(module.data.rds_cluster_arn, null),
+    try(module.data.efs_file_system_arn, null),
+    try(module.event_backbone.dynamodb_table_arn, null)
+  ])
 }
 
 
