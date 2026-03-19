@@ -241,7 +241,7 @@ module "analytics" {
 module "disaster_recovery" {
   source = "../../modules/disaster_recovery"
 
-  project_name     = var.project_name
+  project          = var.project
   environment      = var.environment
   aws_region       = var.aws_region
   secondary_region = var.secondary_region

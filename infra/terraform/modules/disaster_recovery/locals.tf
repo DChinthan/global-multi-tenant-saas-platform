@@ -1,8 +1,8 @@
 locals {
-  name_prefix = "${var.project_name}-${var.environment}"
+  name_prefix = "${var.project}-${var.environment}"
 
   common_tags = {
-    Project     = var.project_name
+    Project     = var.project
     Environment = var.environment
     ManagedBy   = "Terraform"
     Module      = "disaster_recovery"
