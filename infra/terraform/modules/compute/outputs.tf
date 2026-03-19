@@ -50,3 +50,7 @@ output "alb_arn_suffix" {
   value = aws_lb.app.arn_suffix
 }
 
+output "alb_zone_id" {
+  value = aws_lb.app.zone_id
+}
+

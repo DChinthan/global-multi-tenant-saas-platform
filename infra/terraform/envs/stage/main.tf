@@ -33,6 +33,27 @@ module "security" {
   }
 }
 
+module "edge" {
+  source = "../../modules/edge"
+
+  project     = var.project
+  environment = var.environment
+
+  # CHANGE THESE:
+  domain_name             = "example.com"
+  app_subdomain           = "app"
+  origin_domain_name      = "example-origin.example.com" # temporary placeholder
+  enable_route53_failover = var.enable_route53_failover
+
+
+  enable_waf = true
+
+  providers = {
+    aws           = aws
+    aws.us_east_1 = aws.us_east_1
+  }
+}
+
 module "identity" {
   source = "../../modules/identity"
 
@@ -215,6 +236,54 @@ module "analytics" {
   report_schedule_expression = "cron(0 8 * * ? *)"
   report_timezone            = "America/Toronto"
   report_output_prefix       = "scheduled-reports/"
+}
+
+module "disaster_recovery" {
+  source = "../../modules/disaster_recovery"
+
+  project          = var.project
+  environment      = var.environment
+  aws_region       = var.aws_region
+  secondary_region = var.secondary_region
+
+  enable_disaster_recovery = var.enable_disaster_recovery
+  enable_s3_replication    = var.enable_s3_replication
+  enable_route53_failover  = var.enable_route53_failover
+  enable_backup_plan       = var.enable_backup_plan
+  enable_kms_multi_region  = var.enable_kms_multi_region
+
+  hosted_zone_id = var.hosted_zone_id
+  domain_name    = var.domain_name
+
+  primary_alb_dns_name = module.compute.alb_dns_name
+  primary_alb_zone_id  = module.compute.alb_zone_id
+
+  secondary_alb_dns_name = var.secondary_alb_dns_name
+  secondary_alb_zone_id  = var.secondary_alb_zone_id
+
+  replication_bucket_mappings = {
+    audit_logs = {
+      source_bucket_name     = module.data.audit_logs_bucket_name
+      source_bucket_arn      = module.data.audit_logs_bucket_arn
+      destination_bucket_arn = var.dr_audit_logs_bucket_arn
+    }
+
+    exports = {
+      source_bucket_name     = module.data.exports_bucket_name
+      source_bucket_arn      = module.data.exports_bucket_arn
+      destination_bucket_arn = var.dr_exports_bucket_arn
+    }
+
+    tenant_reports = {
+      source_bucket_name     = module.data.tenant_reports_bucket_name
+      source_bucket_arn      = module.data.tenant_reports_bucket_arn
+      destination_bucket_arn = var.dr_tenant_reports_bucket_arn
+    }
+  }
+
+  backup_resource_arns = compact([
+    try(module.data.rds_cluster_arn, null)
+  ])
 }
 
 

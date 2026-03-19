@@ -87,3 +87,78 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "secondary_region" {
+  type        = string
+  description = "Secondary DR region"
+  default     = "us-west-2"
+}
+
+variable "enable_disaster_recovery" {
+  type    = bool
+  default = false
+}
+
+variable "enable_s3_replication" {
+  type    = bool
+  default = false
+}
+
+variable "enable_route53_failover" {
+  type    = bool
+  default = false
+}
+
+variable "enable_backup_plan" {
+  type    = bool
+  default = false
+}
+
+variable "enable_kms_multi_region" {
+  type    = bool
+  default = false
+}
+
+variable "hosted_zone_id" {
+  type    = string
+  default = null
+}
+
+variable "domain_name" {
+  type    = string
+  default = null
+}
+
+variable "secondary_alb_dns_name" {
+  type    = string
+  default = null
+}
+
+variable "secondary_alb_zone_id" {
+  type    = string
+  default = null
+}
+
+variable "replication_bucket_mappings" {
+  type = map(object({
+    source_bucket_name     = string
+    source_bucket_arn      = string
+    destination_bucket_arn = string
+  }))
+  default = {}
+}
+
+variable "dr_audit_logs_bucket_arn" {
+  type    = string
+  default = null
+}
+
+variable "dr_exports_bucket_arn" {
+  type    = string
+  default = null
+}
+
+variable "dr_tenant_reports_bucket_arn" {
+  type    = string
+  default = null
+}

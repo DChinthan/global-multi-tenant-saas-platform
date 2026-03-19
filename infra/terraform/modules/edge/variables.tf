@@ -44,3 +44,8 @@ variable "tags" {
   default = {}
 }
 
+variable "enable_route53_failover" {
+  description = "Disable default app alias when DR Route53 failover is enabled"
+  type        = bool
+  default     = false
+}

@@ -49,3 +49,15 @@ output "audit_logs_bucket_id" {
 output "rds_instance_id" {
   value = try(aws_rds_cluster.aurora[0].id, null)
 }
+
+output "audit_logs_bucket_arn" {
+  value = aws_s3_bucket.audit_logs.arn
+}
+
+output "exports_bucket_arn" {
+  value = aws_s3_bucket.exports.arn
+}
+
+output "tenant_reports_bucket_arn" {
+  value = aws_s3_bucket.tenant_reports.arn
+}
