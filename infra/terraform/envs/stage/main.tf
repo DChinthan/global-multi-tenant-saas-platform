@@ -258,16 +258,31 @@ module "disaster_recovery" {
   primary_alb_dns_name = module.compute.alb_dns_name
   primary_alb_zone_id  = module.compute.alb_zone_id
 
-  # placeholder until true secondary stack exists
   secondary_alb_dns_name = var.secondary_alb_dns_name
   secondary_alb_zone_id  = var.secondary_alb_zone_id
 
-  replication_bucket_mappings = var.replication_bucket_mappings
+  replication_bucket_mappings = {
+    audit_logs = {
+      source_bucket_name     = module.data.audit_logs_bucket_name
+      source_bucket_arn      = module.data.audit_logs_bucket_arn
+      destination_bucket_arn = var.dr_audit_logs_bucket_arn
+    }
+
+    exports = {
+      source_bucket_name     = module.data.exports_bucket_name
+      source_bucket_arn      = module.data.exports_bucket_arn
+      destination_bucket_arn = var.dr_exports_bucket_arn
+    }
+
+    tenant_reports = {
+      source_bucket_name     = module.data.tenant_reports_bucket_name
+      source_bucket_arn      = module.data.tenant_reports_bucket_arn
+      destination_bucket_arn = var.dr_tenant_reports_bucket_arn
+    }
+  }
 
   backup_resource_arns = compact([
-    try(module.data.rds_cluster_arn, null),
-    try(module.data.efs_file_system_arn, null),
-    try(module.event_backbone.dynamodb_table_arn, null)
+    try(module.data.rds_cluster_arn, null)
   ])
 }
 

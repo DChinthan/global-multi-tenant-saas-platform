@@ -13,7 +13,6 @@ tags = {
 
 cidr_block = "10.10.0.0/16"
 
-
 # ================================
 # Cost Safety Toggles
 # ================================
@@ -21,7 +20,6 @@ enable_nat        = false
 enable_rds        = false
 enable_opensearch = false
 enable_kinesis    = false
-
 
 # ================================
 # Identity (Cognito)
@@ -37,7 +35,6 @@ logout_urls = [
   "https://stage.example.com/logout"
 ]
 
-
 # ================================
 # Disaster Recovery (Phase 12)
 # ================================
@@ -49,7 +46,6 @@ enable_route53_failover  = false
 enable_backup_plan       = false
 enable_kms_multi_region  = false
 
-
 # ================================
 # Route53 / Failover Inputs
 # ================================
@@ -58,26 +54,9 @@ domain_name            = null
 secondary_alb_dns_name = null
 secondary_alb_zone_id  = null
 
-
 # ================================
-# S3 Replication Mapping (SAFE - NOT ACTIVE)
+# DR Destination Bucket ARNs
 # ================================
-replication_bucket_mappings = {
-  audit = {
-    source_bucket_name     = "stage-audit-logs"
-    source_bucket_arn      = "arn:aws:s3:::stage-audit-logs"
-    destination_bucket_arn = "arn:aws:s3:::stage-audit-logs-dr"
-  }
-
-  exports = {
-    source_bucket_name     = "stage-exports"
-    source_bucket_arn      = "arn:aws:s3:::stage-exports"
-    destination_bucket_arn = "arn:aws:s3:::stage-exports-dr"
-  }
-
-  tenant_reports = {
-    source_bucket_name     = "stage-tenant-reports"
-    source_bucket_arn      = "arn:aws:s3:::stage-tenant-reports"
-    destination_bucket_arn = "arn:aws:s3:::stage-tenant-reports-dr"
-  }
-}
+dr_audit_logs_bucket_arn     = null
+dr_exports_bucket_arn        = null
+dr_tenant_reports_bucket_arn = null

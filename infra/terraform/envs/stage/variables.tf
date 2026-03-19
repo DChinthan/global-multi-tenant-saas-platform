@@ -147,3 +147,18 @@ variable "replication_bucket_mappings" {
   }))
   default = {}
 }
+
+variable "dr_audit_logs_bucket_arn" {
+  type    = string
+  default = null
+}
+
+variable "dr_exports_bucket_arn" {
+  type    = string
+  default = null
+}
+
+variable "dr_tenant_reports_bucket_arn" {
+  type    = string
+  default = null
+}
