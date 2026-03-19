@@ -87,9 +87,9 @@ variable "secondary_alb_zone_id" {
 variable "replication_bucket_mappings" {
   description = "Map of source bucket name => destination bucket ARN for replication"
   type = map(object({
-    source_bucket_name      = string
-    source_bucket_arn       = string
-    destination_bucket_arn  = string
+    source_bucket_name     = string
+    source_bucket_arn      = string
+    destination_bucket_arn = string
   }))
   default = {}
 }

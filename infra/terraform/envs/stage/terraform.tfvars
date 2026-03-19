@@ -41,7 +41,7 @@ logout_urls = [
 # ================================
 # Disaster Recovery (Phase 12)
 # ================================
-secondary_region         = "us-west-2"
+secondary_region = "us-west-2"
 
 enable_disaster_recovery = false
 enable_s3_replication    = false

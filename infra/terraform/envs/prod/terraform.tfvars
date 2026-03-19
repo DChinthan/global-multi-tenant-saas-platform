@@ -41,9 +41,9 @@ logout_urls = [
 # ================================
 # Disaster Recovery (Phase 12)
 # ================================
-secondary_region         = "us-west-2"
+secondary_region = "us-west-2"
 
-enable_disaster_recovery = false   # keep OFF for cost safety
+enable_disaster_recovery = false # keep OFF for cost safety
 enable_s3_replication    = false
 enable_route53_failover  = false
 enable_backup_plan       = false

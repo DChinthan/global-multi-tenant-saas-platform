@@ -50,10 +50,6 @@ output "rds_instance_id" {
   value = try(aws_rds_cluster.aurora[0].id, null)
 }
 
-output "rds_cluster_arn" {
-  value = aws_rds_cluster.main.arn
-}
-
 output "audit_logs_bucket_arn" {
   value = aws_s3_bucket.audit_logs.arn
 }

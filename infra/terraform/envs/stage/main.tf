@@ -40,9 +40,9 @@ module "edge" {
   environment = var.environment
 
   # CHANGE THESE:
-  domain_name        = "example.com"
-  app_subdomain      = "app"
-  origin_domain_name = "example-origin.example.com" # temporary placeholder
+  domain_name             = "example.com"
+  app_subdomain           = "app"
+  origin_domain_name      = "example-origin.example.com" # temporary placeholder
   enable_route53_failover = var.enable_route53_failover
 
 
@@ -241,26 +241,26 @@ module "analytics" {
 module "disaster_recovery" {
   source = "../../modules/disaster_recovery"
 
-  project_name              = var.project_name
-  environment               = var.environment
-  aws_region                = var.aws_region
-  secondary_region          = var.secondary_region
+  project_name     = var.project_name
+  environment      = var.environment
+  aws_region       = var.aws_region
+  secondary_region = var.secondary_region
 
-  enable_disaster_recovery  = var.enable_disaster_recovery
-  enable_s3_replication     = var.enable_s3_replication
-  enable_route53_failover   = var.enable_route53_failover
-  enable_backup_plan        = var.enable_backup_plan
-  enable_kms_multi_region   = var.enable_kms_multi_region
+  enable_disaster_recovery = var.enable_disaster_recovery
+  enable_s3_replication    = var.enable_s3_replication
+  enable_route53_failover  = var.enable_route53_failover
+  enable_backup_plan       = var.enable_backup_plan
+  enable_kms_multi_region  = var.enable_kms_multi_region
 
-  hosted_zone_id            = var.hosted_zone_id
-  domain_name               = var.domain_name
+  hosted_zone_id = var.hosted_zone_id
+  domain_name    = var.domain_name
 
-  primary_alb_dns_name      = module.compute.alb_dns_name
-  primary_alb_zone_id       = module.compute.alb_zone_id
+  primary_alb_dns_name = module.compute.alb_dns_name
+  primary_alb_zone_id  = module.compute.alb_zone_id
 
   # placeholder until true secondary stack exists
-  secondary_alb_dns_name    = var.secondary_alb_dns_name
-  secondary_alb_zone_id     = var.secondary_alb_zone_id
+  secondary_alb_dns_name = var.secondary_alb_dns_name
+  secondary_alb_zone_id  = var.secondary_alb_zone_id
 
   replication_bucket_mappings = var.replication_bucket_mappings
 
