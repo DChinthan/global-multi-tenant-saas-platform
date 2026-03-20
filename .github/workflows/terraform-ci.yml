@@ -2,8 +2,16 @@ name: Terraform CI
 
 on:
   pull_request:
+    branches: ["dev", "stage", "main"]
   push:
-    branches: ["main", "chore/phase-0-bootstrap"]
+    branches: ["dev", "stage", "main"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: terraform-ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   validate:
@@ -15,6 +23,10 @@ jobs:
       matrix:
         env: [dev, stage, prod]
 
+    defaults:
+      run:
+        working-directory: infra/terraform
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -25,14 +37,18 @@ jobs:
           terraform_version: 1.6.6
 
       - name: Terraform init (no backend)
-        run: terraform -chdir=infra/terraform/envs/${{ matrix.env }} init -backend=false
+        run: terraform -chdir=envs/${{ matrix.env }} init -backend=false
 
       - name: Terraform validate
-        run: terraform -chdir=infra/terraform/envs/${{ matrix.env }} validate
+        run: terraform -chdir=envs/${{ matrix.env }} validate
 
   lint_security:
     name: fmt + tflint + tfsec
     runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: infra/terraform
 
     steps:
       - name: Checkout
@@ -44,7 +60,6 @@ jobs:
           terraform_version: 1.6.6
 
       - name: Terraform fmt (check)
-        working-directory: infra/terraform
         run: terraform fmt -check -recursive
 
       - name: Setup TFLint
@@ -52,25 +67,38 @@ jobs:
         with:
           tflint_version: v0.53.0
 
-      - name: TFLint (per env + module)
-        working-directory: infra/terraform
+      - name: Initialize TFLint
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           CONFIG_PATH="$(pwd)/.tflint.hcl"
-          echo "=== Using config: $CONFIG_PATH ==="
+          echo "Using config: $CONFIG_PATH"
           tflint --init --config "$CONFIG_PATH"
 
-          # Lint environment roots
-          for d in envs/dev envs/stage envs/prod; do
-            echo "=== tflint: $d ==="
-            tflint --chdir "$d" --config "$CONFIG_PATH"
+      - name: TFLint envs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          CONFIG_PATH="$(pwd)/.tflint.hcl"
+
+          for d in envs/*; do
+            if [ -d "$d" ] && ls "$d"/*.tf >/dev/null 2>&1; then
+              echo "=== tflint: $d ==="
+              tflint --chdir "$d" --config "$CONFIG_PATH"
+            fi
           done
 
-          # Lint reusable modules
-          for d in modules/vpc modules/rds modules/opensearch modules/kinesis; do
-            echo "=== tflint: $d ==="
-            tflint --chdir "$d" --config "$CONFIG_PATH"
+      - name: TFLint modules
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          CONFIG_PATH="$(pwd)/.tflint.hcl"
+
+          for d in modules/*; do
+            if [ -d "$d" ] && ls "$d"/*.tf >/dev/null 2>&1; then
+              echo "=== tflint: $d ==="
+              tflint --chdir "$d" --config "$CONFIG_PATH"
+            fi
           done
 
       - name: tfsec (security scan)
