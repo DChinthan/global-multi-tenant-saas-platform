@@ -21,6 +21,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Build webhook-handler Lambda artifact
+        run: |
+          mkdir -p artifacts
+          cd infra/terraform/modules/compute/lambda/webhook-handler
+          zip -r ../../../../../../artifacts/webhook-handler.zip .
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
