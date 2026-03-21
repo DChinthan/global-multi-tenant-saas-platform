@@ -89,7 +89,7 @@ module "compute" {
 
   enable_lambda      = true
   enable_api_gateway = true
-  lambda_zip_path    = "${path.root}/reporting_lambda.zip"
+  lambda_zip_path    = "${path.root}/../../../../artifacts/webhook-handler.zip"
 }
 
 module "data" {
