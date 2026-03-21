@@ -18,10 +18,15 @@ data "aws_iam_policy_document" "github_oidc_assume_role" {
     condition {
       test     = "StringLike"
       variable = "token.actions.githubusercontent.com:sub"
-      values = [
-        for branch in var.allowed_branches :
-        "repo:${var.github_org}/${var.github_repo}:ref:refs/heads/${branch}"
-      ]
+      values = concat(
+        [
+          for branch in var.allowed_branches :
+          "repo:${var.github_org}/${var.github_repo}:ref:refs/heads/${branch}"
+        ],
+        [
+          "repo:${var.github_org}/${var.github_repo}:pull_request"
+        ]
+      )
     }
   }
 }
@@ -47,6 +52,7 @@ data "aws_iam_policy_document" "github_actions_policy" {
   statement {
     sid    = "TerraformStateAndReadOnlyInfra"
     effect = "Allow"
+
     actions = [
       "s3:*",
       "dynamodb:*",
@@ -76,6 +82,7 @@ data "aws_iam_policy_document" "github_actions_policy" {
       "ecs:*",
       "ecr:*"
     ]
+
     resources = ["*"]
   }
 }
