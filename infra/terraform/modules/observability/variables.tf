@@ -89,3 +89,13 @@ variable "vpc_id" {
   type    = string
   default = null
 }
+
+variable "enable_apigw_access_logs" {
+  type    = bool
+  default = false
+}
+
+variable "enable_vpc_flow_logs" {
+  type    = bool
+  default = false
+}

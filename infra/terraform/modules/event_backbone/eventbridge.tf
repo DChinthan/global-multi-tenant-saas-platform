@@ -8,7 +8,7 @@ resource "aws_cloudwatch_event_bus" "domain" {
 }
 
 resource "aws_cloudwatch_event_rule" "tenant_onboarding_requested" {
-  name           = "${local.name_prefix}-tenant-onboarding-requested"
+  name           = "${local.short_prefix}-tenant-onboard-req"
   event_bus_name = aws_cloudwatch_event_bus.domain.name
 
   event_pattern = jsonencode({

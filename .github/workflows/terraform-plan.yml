@@ -1,0 +1,72 @@
+name: Terraform Plan PR
+
+on:
+  pull_request:
+    branches: [main, stage]
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
+jobs:
+  plan:
+    name: Terraform Plan
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        env: [dev, stage]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build webhook-handler Lambda artifact
+        run: |
+          mkdir -p artifacts
+          cd infra/terraform/modules/compute/lambda/webhook-handler
+          zip -r ../../../../../../artifacts/webhook-handler.zip .
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.8.5
+
+      - name: Configure AWS credentials with OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_GITHUB_ACTIONS_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Terraform Init
+        run: terraform -chdir=infra/terraform/envs/${{ matrix.env }} init
+
+      - name: Terraform Plan
+        run: |
+          terraform -chdir=infra/terraform/envs/${{ matrix.env }} plan \
+            -no-color \
+            -input=false \
+            -out=tfplan
+
+      - name: Show Plan
+        run: terraform -chdir=infra/terraform/envs/${{ matrix.env }} show -no-color tfplan > infra/terraform/envs/${{ matrix.env }}/plan.txt
+
+      - name: Upload Plan Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan-${{ matrix.env }}
+          path: infra/terraform/envs/${{ matrix.env }}/plan.txt
+
+      - name: Comment Plan Summary
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = 'infra/terraform/envs/${{ matrix.env }}/plan.txt';
+            const body = fs.readFileSync(path, 'utf8').slice(0, 60000);
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `### Terraform plan (${{ matrix.env }})\n\`\`\`\n${body}\n\`\`\``
+            });

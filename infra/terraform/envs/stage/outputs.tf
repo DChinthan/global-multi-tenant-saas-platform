@@ -31,3 +31,7 @@ output "app_env_parameter" {
   description = "SSM Parameter storing environment"
   value       = module.security.app_env_param_name
 }
+
+output "github_actions_role_arn" {
+  value = module.ci_cd_oidc.github_actions_role_arn
+}

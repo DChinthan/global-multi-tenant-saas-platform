@@ -14,7 +14,7 @@ data "aws_iam_policy_document" "scheduler_assume_role" {
 resource "aws_iam_role" "scheduler_invoke_lambda" {
   count = var.enable_scheduled_reports ? 1 : 0
 
-  name               = "${local.name_prefix}-scheduler-invoke-lambda-role"
+  name               = "${local.short_prefix}-sched-invoke-role"
   assume_role_policy = data.aws_iam_policy_document.scheduler_assume_role.json
 
   tags = local.common_tags

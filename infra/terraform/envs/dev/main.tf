@@ -89,6 +89,7 @@ module "compute" {
 
   enable_lambda      = true
   enable_api_gateway = true
+  lambda_zip_path    = "${path.root}/../../../../artifacts/webhook-handler.zip"
 }
 
 module "data" {
@@ -211,6 +212,9 @@ module "observability" {
   rds_instance_id     = module.data.rds_instance_id
   sns_alert_topic_arn = module.event_backbone.alerts_topic_arn
   vpc_id              = module.vpc.vpc_id
+
+  enable_apigw_access_logs = true
+  enable_vpc_flow_logs     = false
 }
 
 module "analytics" {
@@ -282,6 +286,14 @@ module "disaster_recovery" {
   backup_resource_arns = compact([
     try(module.data.rds_cluster_arn, null)
   ])
+}
+module "ci_cd_oidc" {
+  source = "../../modules/ci_cd_oidc"
+
+  github_org       = "DChinthan"
+  github_repo      = "global-multi-tenant-saas-platform"
+  role_name        = "global-mt-saas-github-actions-role"
+  allowed_branches = ["dev", "stage", "main"]
 }
 
 module "rds" {

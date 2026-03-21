@@ -1,0 +1,50 @@
+name: Deploy Stage
+
+on:
+  push:
+    branches: [stage]
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: deploy-stage
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Terraform Apply Stage
+    runs-on: ubuntu-latest
+    environment: stage
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build webhook-handler Lambda artifact
+        run: |
+          mkdir -p artifacts
+          cd infra/terraform/modules/compute/lambda/webhook-handler
+          zip -r ../../../../../../artifacts/webhook-handler.zip .
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.8.5
+
+      - name: Configure AWS credentials with OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_GITHUB_ACTIONS_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Terraform Init
+        run: terraform -chdir=infra/terraform/envs/stage init
+
+      - name: Terraform Plan
+        run: terraform -chdir=infra/terraform/envs/stage plan -input=false -out=tfplan
+
+      - name: Terraform Apply
+        run: terraform -chdir=infra/terraform/envs/stage apply -input=false -auto-approve tfplan
