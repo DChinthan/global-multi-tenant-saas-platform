@@ -6,6 +6,9 @@ resource "aws_acm_certificate" "app" {
   tags = merge(local.common_tags, {
     Name = "${local.name_prefix}-acm-${local.fqdn}"
   })
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "aws_route53_record" "acm_validation" {
