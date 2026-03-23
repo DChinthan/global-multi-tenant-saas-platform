@@ -10,7 +10,7 @@
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
 
-# Package Files #
+# Package Files
 *.jar
 *.war
 *.nar
@@ -26,18 +26,28 @@ replay_pid*
 ############################################
 # Terraform
 ############################################
+.terraform/
 **/.terraform/*
 *.tfstate
 *.tfstate.*
 crash.log
 crash.*.log
-
-# Optional: local variables/secrets files (keep uncommitted)
-*.tfvars
-*.tfvars.json
+terraform.tfvars
+terraform.tfvars.json
+*.auto.tfvars
+*.auto.tfvars.json
 
 # NOTE: do NOT ignore the lock file; it should be committed
 # .terraform.lock.hcl
+
+############################################
+# AWS / Secrets / Env
+############################################
+.aws/
+.env
+.env.*
+*.pem
+*.key
 
 ############################################
 # OS / Editor
