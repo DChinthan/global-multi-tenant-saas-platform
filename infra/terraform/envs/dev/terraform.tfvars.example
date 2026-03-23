@@ -1,0 +1,8 @@
+aws_region = "us-east-1"
+project     = "global-multi-tenant-saas-platform"
+environment = "dev"
+
+enable_nat        = false
+enable_rds        = false
+enable_opensearch = false
+enable_kinesis    = false
