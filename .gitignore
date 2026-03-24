@@ -36,6 +36,8 @@ terraform.tfvars
 terraform.tfvars.json
 *.auto.tfvars
 *.auto.tfvars.json
+!*.tfvars.example
+!*.example.tfvars
 
 # NOTE: do NOT ignore the lock file; it should be committed
 # .terraform.lock.hcl
