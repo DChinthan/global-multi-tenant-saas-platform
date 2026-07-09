@@ -3,7 +3,8 @@ output "ecs_cluster_name" {
 }
 
 output "ecs_service_name" {
-  value = aws_ecs_service.app.name
+  description = "Name of the default service's ECS service (see var.services is_default)"
+  value       = aws_ecs_service.this[local.default_service_key].name
 }
 
 output "alb_dns_name" {
@@ -11,11 +12,28 @@ output "alb_dns_name" {
 }
 
 output "target_group_arn" {
-  value = aws_lb_target_group.app.arn
+  description = "Target group ARN of the default service"
+  value       = aws_lb_target_group.this[local.default_service_key].arn
 }
 
 output "ecr_repository_url" {
-  value = aws_ecr_repository.app.repository_url
+  description = "ECR repository URL of the default service"
+  value       = aws_ecr_repository.this[local.default_service_key].repository_url
+}
+
+output "ecr_repository_urls" {
+  description = "ECR repository URL for every service, keyed by service name"
+  value       = { for k, v in aws_ecr_repository.this : k => v.repository_url }
+}
+
+output "ecs_service_names" {
+  description = "ECS service name for every service, keyed by service name"
+  value       = { for k, v in aws_ecs_service.this : k => v.name }
+}
+
+output "target_group_arns" {
+  description = "ALB target group ARN for every service, keyed by service name"
+  value       = { for k, v in aws_lb_target_group.this : k => v.arn }
 }
 
 output "lambda_webhook_handler_name" {

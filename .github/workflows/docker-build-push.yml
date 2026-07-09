@@ -1,0 +1,110 @@
+name: Docker Build and Push
+
+on:
+  push:
+    branches: [stage, main]
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-and-push:
+    name: Build and Push to ECR
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_GITHUB_ACTIONS_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set environment tag
+        id: env-tag
+        run: |
+          if [ "${{ github.ref_name }}" == "main" ]; then
+            echo "ENV_TAG=global-mt-saas-app1-prod" >> $GITHUB_OUTPUT
+          elif [ "${{ github.ref_name }}" == "stage" ]; then
+            echo "ENV_TAG=global-mt-saas-app1-stage" >> $GITHUB_OUTPUT
+          else
+            echo "ENV_TAG=global-mt-saas-app1-dev" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build and Push Docker image
+        env:
+          ECR_REGISTRY: 893313104173.dkr.ecr.us-east-1.amazonaws.com
+          ECR_REPOSITORY: docker-learning
+          IMAGE_TAG: ${{ github.sha }}
+          ENV_TAG: ${{ steps.env-tag.outputs.ENV_TAG }}
+        run: |
+          docker build \
+            -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
+            -t $ECR_REGISTRY/$ECR_REPOSITORY:$ENV_TAG \
+            services/app1-python
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$ENV_TAG
+
+  # Phase 2 addition: app5-fileservice, alongside (not replacing) the app1-python
+  # job above. Unlike app1's job, which pushes into the pre-existing, manually
+  # created "docker-learning" repo, this pushes into the per-service ECR repo
+  # that modules/compute/ecr.tf now provisions (aws_ecr_repository.this["app5-fileservice"]),
+  # so the repo must already exist for the target env — i.e. `terraform apply`
+  # in infra/terraform/envs/<env> has to run at least once before the first
+  # push here succeeds. The preflight step below fails with that explanation
+  # instead of a cryptic docker push error if the repo isn't there yet.
+  build-and-push-app5:
+    name: Build and Push app5-fileservice to ECR
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_GITHUB_ACTIONS_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set environment name
+        id: env-name
+        run: |
+          if [ "${{ github.ref_name }}" == "main" ]; then
+            echo "ENV_NAME=prod" >> $GITHUB_OUTPUT
+          elif [ "${{ github.ref_name }}" == "stage" ]; then
+            echo "ENV_NAME=stage" >> $GITHUB_OUTPUT
+          else
+            echo "ENV_NAME=dev" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Verify ECR repo exists
+        env:
+          ECR_REPOSITORY: global-mt-saas-${{ steps.env-name.outputs.ENV_NAME }}-app5-fileservice
+        run: |
+          aws ecr describe-repositories --repository-names "$ECR_REPOSITORY" >/dev/null 2>&1 || {
+            echo "::error::ECR repo '$ECR_REPOSITORY' does not exist yet. Run 'terraform apply' for infra/terraform/envs/${{ steps.env-name.outputs.ENV_NAME }} first (it provisions this repo via modules/compute/ecr.tf) before this job can push to it."
+            exit 1
+          }
+
+      - name: Build and Push Docker image
+        env:
+          ECR_REGISTRY: 893313104173.dkr.ecr.us-east-1.amazonaws.com
+          ECR_REPOSITORY: global-mt-saas-${{ steps.env-name.outputs.ENV_NAME }}-app5-fileservice
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build \
+            -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
+            -t $ECR_REGISTRY/$ECR_REPOSITORY:latest \
+            services/app5-fileservice
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest

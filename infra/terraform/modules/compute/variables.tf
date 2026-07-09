@@ -29,40 +29,49 @@ variable "private_app_subnet_ids" {
   type        = list(string)
 }
 
-variable "container_port" {
-  description = "Application container port"
-  type        = number
-  default     = 8080
-}
+variable "services" {
+  description = <<-EOT
+    ECS services to run behind the shared cluster/ALB, keyed by service name.
 
-variable "desired_count" {
-  description = "Desired ECS service count"
-  type        = number
-  default     = 2
-}
+    The map key is used verbatim in resource names (ECR repo, ECS task family,
+    container name, ECS service name, ALB target group name, CloudWatch log
+    stream prefix, autoscaling target) — renaming a key forces replacement of
+    that service's resources, so treat keys as stable identifiers.
 
-variable "cpu" {
-  description = "CPU units for ECS task"
-  type        = number
-  default     = 512
-}
+    Exactly one entry must set is_default = true; that service becomes the
+    HTTPS listener's default forwarding target (no path condition needed).
+    Every other entry gets its own ALB listener rule matched on path_patterns.
+  EOT
 
-variable "memory" {
-  description = "Memory for ECS task in MiB"
-  type        = number
-  default     = 1024
-}
+  type = map(object({
+    container_port     = number
+    cpu                = number
+    memory             = number
+    desired_count      = number
+    image_tag          = string
+    health_check_path  = string
+    is_default         = optional(bool, false)
+    path_patterns      = optional(list(string), [])
+    listener_priority  = optional(number)
+    min_capacity       = optional(number, 2)
+    max_capacity       = optional(number, 6)
+    autoscaling_target = optional(number, 60)
 
-variable "app_image_tag" {
-  description = "Container image tag to deploy"
-  type        = string
-  default     = "latest"
-}
+    # Only needed to keep a pre-existing autoscaling policy name stable across
+    # a migration (see envs/*/main.tf "app" entry). New services should leave
+    # this unset.
+    autoscaling_policy_name = optional(string)
+  }))
 
-variable "health_check_path" {
-  description = "Health check path for ALB target group"
-  type        = string
-  default     = "/health"
+  validation {
+    condition     = length([for k, v in var.services : k if v.is_default]) == 1
+    error_message = "Exactly one entry in var.services must have is_default = true."
+  }
+
+  validation {
+    condition     = alltrue([for k, v in var.services : v.is_default || length(v.path_patterns) > 0])
+    error_message = "Every non-default service must set at least one path_patterns entry so the ALB can route to it."
+  }
 }
 
 variable "enable_lambda" {
@@ -92,4 +101,8 @@ variable "apigw_log_group_arn" {
   description = "CloudWatch log group ARN for API Gateway access logs"
   type        = string
   default     = null
+}
+variable "alb_acm_certificate_arn" {
+  description = "ACM certificate ARN for the ALB HTTPS listener (must be in the same region as the ALB)"
+  type        = string
 }

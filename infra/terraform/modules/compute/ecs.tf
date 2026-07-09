@@ -26,28 +26,30 @@ resource "aws_ecs_cluster" "main" {
 
 ################################################
 ################################################
-# ECS Task Definition
+# ECS Task Definitions (one per entry in var.services)
 ################################################
 
-resource "aws_ecs_task_definition" "app" {
-  family                   = "${local.compute_name_prefix}-app"
+resource "aws_ecs_task_definition" "this" {
+  for_each = var.services
+
+  family                   = "${local.compute_name_prefix}-${each.key}"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
-  cpu                      = tostring(var.cpu)
-  memory                   = tostring(var.memory)
+  cpu                      = tostring(each.value.cpu)
+  memory                   = tostring(each.value.memory)
   execution_role_arn       = aws_iam_role.ecs_task_execution.arn
   task_role_arn            = aws_iam_role.ecs_task_role.arn
 
   container_definitions = jsonencode([
     {
-      name      = "app"
-      image     = "${aws_ecr_repository.app.repository_url}:${var.app_image_tag}"
+      name      = each.key
+      image     = "${aws_ecr_repository.this[each.key].repository_url}:${each.value.image_tag}"
       essential = true
 
       portMappings = [
         {
-          containerPort = var.container_port
-          hostPort      = var.container_port
+          containerPort = each.value.container_port
+          hostPort      = each.value.container_port
           protocol      = "tcp"
         }
       ]
@@ -61,7 +63,7 @@ resource "aws_ecs_task_definition" "app" {
         options = {
           awslogs-group         = var.ecs_log_group_name
           awslogs-region        = data.aws_region.current.name
-          awslogs-stream-prefix = "app"
+          awslogs-stream-prefix = each.key
         }
       }
 
@@ -76,7 +78,7 @@ resource "aws_ecs_task_definition" "app" {
         },
         {
           name  = "AWS_XRAY_TRACING_NAME"
-          value = "${var.project}-${var.environment}-app"
+          value = "${var.project}-${var.environment}-${each.key}"
         }
       ]
     }
@@ -87,14 +89,16 @@ resource "aws_ecs_task_definition" "app" {
 
 
 ################################################
-# ECS Service
+# ECS Services (one per entry in var.services)
 ################################################
 
-resource "aws_ecs_service" "app" {
-  name            = "${local.compute_name_prefix}-app-service"
+resource "aws_ecs_service" "this" {
+  for_each = var.services
+
+  name            = "${local.compute_name_prefix}-${each.key}-service"
   cluster         = aws_ecs_cluster.main.id
-  task_definition = aws_ecs_task_definition.app.arn
-  desired_count   = var.desired_count
+  task_definition = aws_ecs_task_definition.this[each.key].arn
+  desired_count   = each.value.desired_count
   launch_type     = "FARGATE"
 
   network_configuration {
@@ -104,12 +108,12 @@ resource "aws_ecs_service" "app" {
   }
 
   load_balancer {
-    target_group_arn = aws_lb_target_group.app.arn
-    container_name   = "app"
-    container_port   = var.container_port
+    target_group_arn = aws_lb_target_group.this[each.key].arn
+    container_name   = each.key
+    container_port   = each.value.container_port
   }
 
-  depends_on = [aws_lb_listener.http]
+  depends_on = [aws_lb_listener.http, aws_lb_listener.https]
 
   tags = local.common_tags
 }
