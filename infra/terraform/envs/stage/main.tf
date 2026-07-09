@@ -82,16 +82,44 @@ module "compute" {
   ecs_log_group_name     = module.observability.ecs_log_group_name
   apigw_log_group_arn    = module.observability.apigw_log_group_arn
 
-  container_port    = 8080
-  desired_count     = 2
-  cpu               = 512
-  memory            = 1024
-  app_image_tag     = "latest"
-  health_check_path = "/health"
+  # Phase 1 (multi-service ECS refactor): app1-python is the pre-existing
+  # single service, keyed "app" so all derived resource names (ECR repo, task
+  # family, ECS service, target group, autoscaling target) stay identical to
+  # the pre-refactor hardcoded names — see modules/compute/moved.tf.
+  services = {
+    app = {
+      container_port    = 8080
+      cpu               = 512
+      memory            = 1024
+      desired_count     = 2
+      image_tag         = "latest"
+      health_check_path = "/health"
+      is_default        = true
+
+      # Pins the autoscaling policy name to the old hardcoded value so this
+      # migration is a zero-diff plan. New service entries should omit this.
+      autoscaling_policy_name = "${var.project}-${var.environment}-ecs-cpu-scaling"
+    }
+
+    # Phase 2: FastAPI demo service, path-routed off the same ALB at /app5/*
+    # (see services/app5-fileservice and modules/compute/alb.tf listener rules).
+    "app5-fileservice" = {
+      container_port    = 8080
+      cpu               = 256
+      memory            = 512
+      desired_count     = 2
+      image_tag         = "latest"
+      health_check_path = "/healthz"
+      is_default        = false
+      path_patterns     = ["/app5/*"]
+    }
+  }
 
   enable_lambda      = true
   enable_api_gateway = true
   lambda_zip_path    = "${path.root}/../../../../artifacts/webhook-handler.zip"
+
+  alb_acm_certificate_arn = var.alb_acm_certificate_arn
 }
 
 module "data" {
@@ -329,4 +357,20 @@ module "kinesis" {
 
   project     = var.project
   environment = var.environment
+}
+
+# Phase 3 (Kubernetes/Helm demo): real EKS module, gated off by default - see
+# modules/eks/main.tf for the cost breakdown. The runnable Helm/K8s evidence
+# for this repo comes from a local kind cluster instead (docs/app5-multicloud-demo.md).
+module "eks" {
+  source = "../../modules/eks"
+  count  = var.enable_eks ? 1 : 0
+
+  project     = var.project
+  environment = var.environment
+  tags        = var.tags
+
+  vpc_id                 = module.vpc.vpc_id
+  private_app_subnet_ids = module.vpc.private_app_subnet_ids
+  public_subnet_ids      = module.vpc.public_subnet_ids
 }

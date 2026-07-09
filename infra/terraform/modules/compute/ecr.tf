@@ -1,5 +1,7 @@
-resource "aws_ecr_repository" "app" {
-  name                 = "${local.compute_name_prefix}-app"
+resource "aws_ecr_repository" "this" {
+  for_each = var.services
+
+  name                 = "${local.compute_name_prefix}-${each.key}"
   image_tag_mutability = "MUTABLE"
 
   image_scanning_configuration {
@@ -9,8 +11,10 @@ resource "aws_ecr_repository" "app" {
   tags = local.common_tags
 }
 
-resource "aws_ecr_lifecycle_policy" "app" {
-  repository = aws_ecr_repository.app.name
+resource "aws_ecr_lifecycle_policy" "this" {
+  for_each = var.services
+
+  repository = aws_ecr_repository.this[each.key].name
 
   policy = jsonencode({
     rules = [

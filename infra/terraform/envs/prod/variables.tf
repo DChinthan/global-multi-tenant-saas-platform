@@ -33,6 +33,11 @@ variable "enable_kinesis" {
   type    = bool
   default = false
 }
+variable "enable_eks" {
+  description = "Provision the real EKS cluster in modules/eks. Costs real money the moment this is true - see modules/eks/main.tf. Kept false; local kind is used for the runnable Helm/K8s demo instead."
+  type        = bool
+  default     = false
+}
 
 # Example sizing knobs (keep tiny in dev)
 variable "rds_instance_class" {
@@ -158,4 +163,8 @@ variable "dr_exports_bucket_arn" {
 variable "dr_tenant_reports_bucket_arn" {
   type    = string
   default = null
+}
+variable "alb_acm_certificate_arn" {
+  description = "ACM certificate ARN for the ALB HTTPS listener (must be in the same region as the ALB)"
+  type        = string
 }

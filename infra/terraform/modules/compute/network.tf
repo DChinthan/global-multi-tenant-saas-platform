@@ -34,12 +34,15 @@ resource "aws_security_group" "ecs_service" {
   description = "Security group for ECS service"
   vpc_id      = var.vpc_id
 
-  ingress {
-    description     = "Traffic from ALB"
-    from_port       = var.container_port
-    to_port         = var.container_port
-    protocol        = "tcp"
-    security_groups = [aws_security_group.alb.id]
+  dynamic "ingress" {
+    for_each = local.service_ports
+    content {
+      description     = "Traffic from ALB on port ${ingress.value}"
+      from_port       = ingress.value
+      to_port         = ingress.value
+      protocol        = "tcp"
+      security_groups = [aws_security_group.alb.id]
+    }
   }
 
   egress {

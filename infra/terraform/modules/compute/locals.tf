@@ -12,4 +12,11 @@ locals {
     ManagedBy   = "terraform"
     Layer       = "compute"
   })
+
+  # The single service (out of var.services) that the ALB forwards to by
+  # default. Validated in variables.tf to always resolve to exactly one key.
+  default_service_key = one([for k, v in var.services : k if v.is_default])
+
+  # Distinct container ports across all services, used for the ECS service SG.
+  service_ports = distinct([for v in var.services : v.container_port])
 }
