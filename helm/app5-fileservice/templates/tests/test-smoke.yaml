@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ include "app5-fileservice.fullname" . }}-smoke-test
+  labels:
+    {{- include "app5-fileservice.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  restartPolicy: Never
+  containers:
+    - name: smoke-test
+      image: curlimages/curl:8.9.1
+      command:
+        - sh
+        - -c
+        - |
+          set -e
+          base="http://{{ include "app5-fileservice.fullname" . }}:{{ .Values.service.port }}"
+
+          echo "GET $base{{ .Values.probes.healthzPath }}"
+          curl -sf "$base{{ .Values.probes.healthzPath }}"
+          echo
+
+          echo "GET $base{{ .Values.probes.readyzPath }}"
+          curl -sf "$base{{ .Values.probes.readyzPath }}"
+          echo
+
+          echo "GET $base/presign"
+          body=$(curl -sf "$base/presign")
+          echo "$body"
+          echo "$body" | grep -q '"cloud_provider":"{{ .Values.cloudProvider }}"' || {
+            echo "FAIL: /presign did not report cloud_provider={{ .Values.cloudProvider }}"
+            exit 1
+          }
+
+          echo "All smoke checks passed."

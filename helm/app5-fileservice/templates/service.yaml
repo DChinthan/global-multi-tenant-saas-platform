@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "app5-fileservice.fullname" . }}
+  labels:
+    {{- include "app5-fileservice.labels" . | nindent 4 }}
+spec:
+  selector:
+    {{- include "app5-fileservice.labels" . | nindent 4 }}
+  ports:
+    - name: http
+      port: {{ .Values.service.port }}
+      targetPort: http

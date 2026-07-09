@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "app5-fileservice.fullname" . }}
+  labels:
+    {{- include "app5-fileservice.labels" . | nindent 4 }}
+spec:
+  # No replicas field: the HPA (templates/hpa.yaml) owns desired count after
+  # the first reconcile. Helm only sets the initial count on first install.
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "app5-fileservice.labels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "app5-fileservice.labels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: app5-fileservice
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+          env:
+            - name: CLOUD_PROVIDER
+              value: {{ .Values.cloudProvider | quote }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.probes.healthzPath }}
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.probes.readyzPath }}
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}

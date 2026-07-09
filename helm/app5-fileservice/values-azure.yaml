@@ -1,0 +1,4 @@
+# Overlay for targeting Azure: `helm install ... -f values-azure.yaml`.
+# Proves the same chart/image can be re-pointed at a different cloud with a
+# single field - see services/app5-fileservice/main.py's presign templates.
+cloudProvider: azure
