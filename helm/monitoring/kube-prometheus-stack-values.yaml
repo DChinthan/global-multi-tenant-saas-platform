@@ -1,0 +1,72 @@
+# Values override for prometheus-community/kube-prometheus-stack, pinned to
+# chart 87.15.1 (app v0.92.1) in the install command in
+# docs/observability-demo.md. Trimmed for a laptop `kind` cluster - a real
+# EKS/AKS install would drop most of the trims below and lean on defaults.
+
+prometheus:
+  prometheusSpec:
+    # kube-prometheus-stack's Prometheus only watches ServiceMonitors/
+    # PodMonitors carrying its own Helm release label unless told otherwise.
+    # That's the right call on a shared, multi-team cluster (explicit
+    # opt-in per team). On a single-purpose demo cluster it just means your
+    # ServiceMonitor silently never gets scraped - no error, it's just not
+    # in the list. Setting these to false switches Prometheus to watch
+    # every ServiceMonitor/PodMonitor in the cluster, label or not.
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+
+    # No storageSpec = Prometheus's data dir falls back to emptyDir: gone on
+    # pod restart. Fine for a demo you can re-run in two minutes; a real
+    # install needs a StorageClass-backed PVC here so history survives a
+    # reschedule.
+    retention: 6h
+    resources:
+      requests:
+        cpu: 100m
+        memory: 400Mi
+      limits:
+        cpu: 500m
+        memory: 800Mi
+
+  # kubeadm-style control-plane scrape targets (controller-manager,
+  # scheduler, etcd) point at static-pod ports on the host network that
+  # kind's control plane doesn't expose the same way a real kubeadm or EKS
+  # control plane does. Left enabled they just sit permanently red in
+  # Prometheus's target list - not a real outage, a kind quirk. Disabled
+  # here so the demo's "targets up" check means something; a real cluster
+  # install should leave these enabled.
+kubeControllerManager:
+  enabled: false
+kubeScheduler:
+  enabled: false
+kubeEtcd:
+  enabled: false
+
+alertmanager:
+  alertmanagerSpec:
+    resources:
+      requests:
+        cpu: 25m
+        memory: 64Mi
+      limits:
+        cpu: 100m
+        memory: 128Mi
+
+grafana:
+  # Demo-only. A real install pulls this from a pre-existing Secret
+  # (`admin.existingSecret`) sourced from AWS Secrets Manager / SSM via
+  # external-secrets, never a plaintext value in a values file.
+  adminPassword: demo-admin-only
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+  # Ships with a set of default Kubernetes cluster/node dashboards out of
+  # the box, on top of the custom one this repo adds via the sidecar-
+  # discovered ConfigMap in dashboards/.
+  defaultDashboardsEnabled: true
+  service:
+    type: ClusterIP

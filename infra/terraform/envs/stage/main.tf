@@ -374,3 +374,20 @@ module "eks" {
   private_app_subnet_ids = module.vpc.private_app_subnet_ids
   public_subnet_ids      = module.vpc.public_subnet_ids
 }
+
+# Observability: Terraform-managed kube-prometheus-stack (Prometheus +
+# Grafana + Alertmanager) on top of module.eks - see modules/monitoring/main.tf.
+# Only meaningful once a real cluster exists, so it's gated behind the same
+# enable_eks flag. The runnable observability evidence for this repo comes
+# from `helm install` against a local kind cluster instead - see
+# docs/observability-demo.md.
+module "monitoring" {
+  source = "../../modules/monitoring"
+  count  = var.enable_eks ? 1 : 0
+
+  project     = var.project
+  environment = var.environment
+  tags        = var.tags
+
+  depends_on = [module.eks]
+}

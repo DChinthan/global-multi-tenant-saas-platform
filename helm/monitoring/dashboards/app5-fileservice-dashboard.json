@@ -1,0 +1,95 @@
+{
+  "title": "app5-fileservice — golden signals",
+  "uid": "app5-fileservice-golden-signals",
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "10s",
+  "time": { "from": "now-15m", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Request rate (req/s)",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "$datasource" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_total[1m])) by (handler)",
+          "legendFormat": "{{handler}}",
+          "datasource": { "type": "prometheus", "uid": "$datasource" }
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Error rate (% of requests, 5xx)",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "$datasource" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "fieldConfig": { "defaults": { "unit": "percent" }, "overrides": [] },
+      "targets": [
+        {
+          "expr": "100 * sum(rate(http_requests_total{status=~\"5..\"}[5m])) / sum(rate(http_requests_total[5m]))",
+          "legendFormat": "error rate",
+          "datasource": { "type": "prometheus", "uid": "$datasource" }
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Latency p95 / p99 by handler",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "$datasource" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "fieldConfig": { "defaults": { "unit": "s" }, "overrides": [] },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, handler))",
+          "legendFormat": "p95 {{handler}}",
+          "datasource": { "type": "prometheus", "uid": "$datasource" }
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, handler))",
+          "legendFormat": "p99 {{handler}}",
+          "datasource": { "type": "prometheus", "uid": "$datasource" }
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "HPA replicas — current vs min/max",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "$datasource" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "targets": [
+        {
+          "expr": "kube_horizontalpodautoscaler_status_current_replicas{horizontalpodautoscaler=~\".*app5-fileservice.*\"}",
+          "legendFormat": "current",
+          "datasource": { "type": "prometheus", "uid": "$datasource" }
+        },
+        {
+          "expr": "kube_horizontalpodautoscaler_spec_min_replicas{horizontalpodautoscaler=~\".*app5-fileservice.*\"}",
+          "legendFormat": "min",
+          "datasource": { "type": "prometheus", "uid": "$datasource" }
+        },
+        {
+          "expr": "kube_horizontalpodautoscaler_spec_max_replicas{horizontalpodautoscaler=~\".*app5-fileservice.*\"}",
+          "legendFormat": "max",
+          "datasource": { "type": "prometheus", "uid": "$datasource" }
+        }
+      ]
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "datasource",
+        "type": "datasource",
+        "query": "prometheus",
+        "current": {},
+        "hide": 0
+      }
+    ]
+  }
+}

@@ -1,0 +1,22 @@
+{{- if .Values.serviceMonitor.enabled }}
+# The Prometheus Operator CRD (installed by kube-prometheus-stack). This
+# object doesn't scrape anything itself - it's a declarative instruction
+# that the Operator watches and compiles into Prometheus's real scrape
+# config, the same reconcile-loop pattern as every other Kubernetes
+# controller. Delete it and the Operator removes the scrape target within
+# seconds; no Prometheus restart needed.
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "app5-fileservice.fullname" . }}
+  labels:
+    {{- include "app5-fileservice.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "app5-fileservice.labels" . | nindent 6 }}
+  endpoints:
+    - port: http
+      path: {{ .Values.serviceMonitor.path }}
+      interval: {{ .Values.serviceMonitor.interval }}
+{{- end }}
