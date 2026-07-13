@@ -26,5 +26,14 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 5.0"
     }
+    # module.monitoring only - see modules/monitoring/versions.tf
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "~> 2.33"
+    }
+    helm = {
+      source  = "hashicorp/helm"
+      version = "~> 2.15"
+    }
   }
 }

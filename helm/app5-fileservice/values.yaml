@@ -25,6 +25,15 @@ probes:
   healthzPath: /healthz
   readyzPath: /readyz
 
+# Requires the Prometheus Operator CRDs (installed by kube-prometheus-stack)
+# to already exist in the cluster - see helm/monitoring/. Off by default so
+# this chart still installs cleanly on a bare cluster with no monitoring
+# stack.
+serviceMonitor:
+  enabled: false
+  path: /metrics
+  interval: 15s
+
 # Mirrors the ECS Fargate autoscaling.tf pattern in modules/compute
 # (min 2 / max 6, 60% CPU target) so the scaling story is consistent
 # whether the service runs on ECS or Kubernetes.

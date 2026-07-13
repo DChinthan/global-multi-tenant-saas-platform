@@ -4,8 +4,18 @@ import time
 import uuid
 
 from fastapi import APIRouter, FastAPI, HTTPException
+from prometheus_fastapi_instrumentator import Instrumentator
 
 app = FastAPI(title="app5-fileservice")
+
+# Adds a request-tracking ASGI middleware (instrument) and a GET /metrics
+# route that serves it in Prometheus text format (expose). No custom metric
+# code needed - request count, in-progress requests, and a request-duration
+# histogram (the basis for p95/p99 via histogram_quantile in PromQL) come
+# free from the instrumentator. excluded_handlers keeps /metrics out of its
+# own request counters. See helm/app5-fileservice/templates/servicemonitor.yaml
+# for how Prometheus discovers this endpoint.
+Instrumentator(excluded_handlers=["/metrics"]).instrument(app).expose(app)
 
 CLOUD_PROVIDER = os.environ.get("CLOUD_PROVIDER", "aws")
 START_TIME = time.time()
