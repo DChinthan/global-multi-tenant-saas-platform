@@ -11,6 +11,17 @@ module "vpc" {
   enable_nat               = var.enable_nat
   enable_gateway_endpoints = true
 
+  # Interface Endpoints (PrivateLink) for ECR/Logs/Secrets Manager - see
+  # modules/vpc/privatelink.tf. On by default here since enable_nat is false
+  # in dev, so without these the ECS tasks below would have no path to pull
+  # images at all.
+  enable_interface_endpoints = true
+
+  # Dev-only NACL/ENI troubleshooting lab (docs/runbooks/nacl-eni-troubleshooting.md).
+  # Stays false until you're deliberately running the exercise.
+  enable_troubleshooting_lab = false
+  app_container_port         = 8080
+
   tags = {
     Env = var.environment
   }
@@ -118,6 +129,15 @@ module "compute" {
   lambda_zip_path    = "${path.root}/../../../../artifacts/webhook-handler.zip"
 
   alb_acm_certificate_arn = var.alb_acm_certificate_arn
+
+  # NLB alongside the ALB, fronting the default service - see modules/compute/nlb.tf.
+  enable_nlb = true
+
+  # PrivateLink endpoint service off by default in dev; turned on in stage
+  # as the demo environment (see envs/stage/main.tf). Flip on here too and
+  # set privatelink_allowed_principal_arns if you want to test cross-account
+  # consumption from a sandbox account.
+  enable_privatelink_endpoint_service = false
 }
 
 module "data" {

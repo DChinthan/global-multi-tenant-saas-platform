@@ -106,3 +106,21 @@ variable "alb_acm_certificate_arn" {
   description = "ACM certificate ARN for the ALB HTTPS listener (must be in the same region as the ALB)"
   type        = string
 }
+
+variable "enable_nlb" {
+  description = "Create an internal Network Load Balancer fronting the default ECS service alongside the existing ALB (see nlb.tf for why NLB vs ALB). Required for enable_privatelink_endpoint_service."
+  type        = bool
+  default     = true
+}
+
+variable "enable_privatelink_endpoint_service" {
+  description = "Publish the NLB as an AWS PrivateLink VPC Endpoint Service so other VPCs/accounts can reach the default service privately (see privatelink.tf). Requires enable_nlb = true. The endpoint service itself has no hourly cost - billing only starts on the consumer side once someone attaches an Interface Endpoint to it."
+  type        = bool
+  default     = false
+}
+
+variable "privatelink_allowed_principal_arns" {
+  description = "IAM principal ARNs (e.g. arn:aws:iam::123456789012:root for an entire account, or a specific role/user ARN) allowed to request a connection to the PrivateLink endpoint service. Each request still requires manual acceptance since acceptance_required = true."
+  type        = list(string)
+  default     = []
+}

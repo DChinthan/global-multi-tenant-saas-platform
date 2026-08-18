@@ -73,6 +73,13 @@ locals {
   public_subnet_ids_sorted = [
     for az in sort(keys(aws_subnet.public)) : aws_subnet.public[az].id
   ]
+
+  # Same stable ordering for private-app subnets - used to place Interface
+  # Endpoint ENIs (one per AZ) and to pick a deterministic "first" subnet for
+  # the troubleshooting-lab NACL (see nacl_lab.tf).
+  private_app_subnet_ids_sorted = [
+    for az in sort(keys(aws_subnet.private_app)) : aws_subnet.private_app[az].id
+  ]
 }
 
 ############################################

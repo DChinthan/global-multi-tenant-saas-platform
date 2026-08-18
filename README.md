@@ -36,11 +36,15 @@ This project simulates a real-world, multi-tenant SaaS system end to end: secure
 - **Multi-tenancy** — logical isolation via `tenant_id` scoping, with an optional cell-based model (dedicated schema/cluster/KMS key) for premium/regulated tenants
 - **Event-driven architecture** — EventBridge, SQS, Lambda, and Step Functions decouple services and drive async workflows
 - **Kubernetes & multi-cloud** — a second service (`app5-fileservice`) ships as a Helm chart deployable to any Kubernetes cluster, with `terraform validate`-clean AWS EKS and Azure AKS modules proving the same compute pattern generalizes across clouds
-- **Infrastructure as Code** — modular Terraform across `dev` / `stage` / `prod`, reusable modules per concern (VPC, IAM, compute, data, edge, observability, security, DR, analytics, event backbone…)
+- **Infrastructure as Code** — modular Terraform across `dev` / `stage` / `prod`, reusable modules per concern (VPC, IAM, compute, data, edge, observability, security, DR, analytics, event backbone…), plus a separate `infra/terraform/org/` root for AWS Organizations + SCPs
+- **Dual load balancing** — ALB for HTTP path-based routing, a Network Load Balancer dual-registered on the same ECS service for L4/PrivateLink traffic (see [`docs/architecture/README.md`](docs/architecture/README.md) for why)
+- **AWS PrivateLink both ways** — Interface Endpoints consuming ECR/Logs/Secrets Manager privately, and a VPC Endpoint Service publishing the platform's own NLB for cross-VPC/cross-account access
+- **Multi-account guardrails** — AWS Organizations with a `Workloads` OU (`Dev`/`Prod`) and Service Control Policies (deny root user, region restriction, mandatory tagging), authored in `infra/terraform/org/`
 - **Security-first** — IAM least privilege, GitHub Actions → AWS via OIDC (no static credentials), KMS encryption, WAF, CloudTrail audit logging, and a documented threat model + tfsec scan report
 - **Full CI/CD** — Terraform validate/plan matrix across environments, tflint + tfsec scanning, Docker build/push to ECR, and automated versioned releases via `release-please`
-- **Observability** — CloudWatch logs/metrics/alarms, X-Ray distributed tracing, centralized audit logs
+- **Observability** — CloudWatch logs/metrics/alarms, X-Ray distributed tracing, centralized audit logs, and VPC Flow Logs with saved Logs Insights queries
 - **Disaster recovery** — documented DR design with deploy/rollback runbooks
+- **Incident-response practice** — a deliberately-misconfigured NACL lab plus a full [ENI/NACL troubleshooting runbook](docs/runbooks/nacl-eni-troubleshooting.md) using Flow Logs and VPC Reachability Analyzer
 - **Cost-safe by default** — NAT Gateway, Aurora, OpenSearch, Kinesis, and EKS are all feature-flagged off until you explicitly opt in
 
 ---
@@ -70,9 +74,11 @@ Docker image → Helm chart → kind / EKS / AKS
 Full design docs:
 - [`HLD.md`](HLD.md) — high-level design (product scope, multi-tenancy model, personas)
 - [`LLD.md`](LLD.md) — low-level design
+- [`docs/architecture/README.md`](docs/architecture/README.md) — NLB/PrivateLink/Organizations/Flow Logs additions, and a living **Known Gaps** table (what's real vs. still shallow)
 - [`docs/app5-multicloud-demo.md`](docs/app5-multicloud-demo.md) — the Kubernetes/Helm/multi-cloud demo, step by step
 - [`docs/adr/`](docs/adr) — architecture decision records
 - [`docs/security/`](docs/security) — threat model, IAM review checklist, tfsec report, WAF testing notes
+- [`docs/runbooks/nacl-eni-troubleshooting.md`](docs/runbooks/nacl-eni-troubleshooting.md) — ENI/NACL connectivity incident walkthrough
 
 ---
 
@@ -83,9 +89,10 @@ infra/
  ├── terraform/
  │    ├── modules/        # vpc, iam, compute, data, edge, eks, azure_aks, observability, security, dr, ...
  │    ├── envs/            # dev / stage / prod root configs
+ │    ├── org/             # separate root: AWS Organizations + SCPs (different account context)
  │    ├── Makefile
  │    └── main.tf
- └── scripts/
+ └── scripts/              # deploy-ecs-service.sh + Deploy-EcsService.ps1 (Bash vs PowerShell/AWS.Tools)
 
 services/
  ├── app1-python/          # primary ECS Fargate service
@@ -212,6 +219,9 @@ Full walkthrough, including the k6 load test and the pod-kill chaos test: [`docs
 - KMS encryption for S3, logs, and secrets
 - CloudTrail + centralized audit logging
 - WAF with rate limiting
+- VPC Flow Logs with saved CloudWatch Logs Insights queries (top talkers by ENI, rejected connections)
+- Interface VPC Endpoints (AWS PrivateLink) for ECR/Logs/Secrets Manager — private subnets no longer depend on NAT Gateway for AWS API access
+- AWS Organizations + SCPs (deny root user, region restriction, mandatory tagging) — see [`infra/terraform/org/`](infra/terraform/org)
 - `tfsec` static analysis on every Terraform change — see [`docs/security/tfsec-report.md`](docs/security/tfsec-report.md)
 - Documented threat model — [`docs/security/threat-model.md`](docs/security/threat-model.md)
 
@@ -236,6 +246,10 @@ This project is designed to be **safe to run without incurring high AWS costs**.
 | OpenSearch | ❌ Disabled |
 | Kinesis | ❌ Disabled |
 | EKS | ❌ Disabled |
+| Interface Endpoints (PrivateLink) | ✅ Enabled — cheaper than NAT Gateway for the ECR/Logs/Secrets Manager traffic ECS tasks actually need |
+| NLB (alongside ALB) | ✅ Enabled |
+| PrivateLink Endpoint Service | ❌ Disabled except `stage` (demo) |
+| AWS Organizations / SCPs | Authored, not applied (`infra/terraform/org/`) |
 
 Serverless-first, pay-per-use services, configured log retention, no unnecessary always-on resources. The Kubernetes demo runs entirely on a free local [`kind`](https://kind.sigs.k8s.io/) cluster rather than a billed managed cluster.
 

@@ -72,3 +72,24 @@ output "alb_zone_id" {
   value = aws_lb.app.zone_id
 }
 
+output "nlb_arn" {
+  value = try(aws_lb.nlb[0].arn, null)
+}
+
+output "nlb_dns_name" {
+  value = try(aws_lb.nlb[0].dns_name, null)
+}
+
+output "nlb_target_group_arn" {
+  value = try(aws_lb_target_group.nlb_default[0].arn, null)
+}
+
+output "privatelink_endpoint_service_name" {
+  description = "service_name a consumer passes to their own aws_vpc_endpoint resource to connect (e.g. com.amazonaws.vpce.us-east-1.vpce-svc-xxxxxxxx)"
+  value       = try(aws_vpc_endpoint_service.app[0].service_name, null)
+}
+
+output "privatelink_endpoint_service_id" {
+  value = try(aws_vpc_endpoint_service.app[0].id, null)
+}
+

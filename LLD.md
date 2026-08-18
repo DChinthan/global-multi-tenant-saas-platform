@@ -220,7 +220,12 @@ Attributes:
 
 ### 9.1 Environments
 - `dev` / `staging` / `prod`
-- Separate AWS accounts recommended (Organizations)
+- Separate AWS accounts recommended (Organizations) — authored as a
+  separate Terraform root (`infra/terraform/org/`: Organization, `Workloads`
+  OU with `Dev`/`Prod` children, SCPs for root-user denial, region
+  restriction, and mandatory tagging). Not yet applied against a real
+  multi-account org — `envs/{dev,stage,prod}` still run in a single account
+  today. See `docs/architecture/README.md` "Known Gaps".
 
 ### 9.2 CI/CD (repo-friendly)
 - GitHub Actions:
@@ -231,7 +236,16 @@ Attributes:
 
 ### 9.3 Networking
 - Private subnets for services & data
-- VPC endpoints where possible (S3, DynamoDB, ECR) to reduce NAT costs
+- VPC endpoints where possible to reduce NAT costs: Gateway Endpoints for
+  S3/DynamoDB (free, route-table based, not PrivateLink) plus Interface
+  Endpoints (AWS PrivateLink, ENI-based) for ECR/CloudWatch Logs/Secrets
+  Manager (`modules/vpc/privatelink.tf`)
+- Internal NLB dual-registered on the default ECS service alongside the ALB
+  (`modules/compute/nlb.tf`), also the backing load balancer for a
+  PrivateLink VPC Endpoint Service that publishes the service for cross-VPC/
+  cross-account private consumption (`modules/compute/privatelink.tf`)
+- VPC Flow Logs to CloudWatch Logs with saved Logs Insights queries
+  (`modules/observability/logs.tf`, `insights_queries.tf`)
 
 ---
 

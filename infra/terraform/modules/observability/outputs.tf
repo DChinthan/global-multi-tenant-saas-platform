@@ -17,3 +17,11 @@ output "dashboard_name" {
 output "cloudtrail_name" {
   value = try(aws_cloudtrail.platform_audit[0].name, null)
 }
+
+output "vpc_flow_log_id" {
+  value = try(aws_flow_log.vpc[0].id, null)
+}
+
+output "vpc_flow_logs_log_group_name" {
+  value = try(aws_cloudwatch_log_group.vpc_flow_logs[0].name, null)
+}

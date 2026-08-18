@@ -45,6 +45,20 @@ resource "aws_security_group" "ecs_service" {
     }
   }
 
+  # NLB (nlb.tf) targets the default service's container_port directly - NLB
+  # itself has no per-listener SG concept for its own traffic, so the source
+  # here is the NLB's own SG (aws_lb.nlb has security_groups attached).
+  dynamic "ingress" {
+    for_each = var.enable_nlb ? [1] : []
+    content {
+      description     = "Traffic from internal NLB on the default service's app port"
+      from_port       = var.services[local.default_service_key].container_port
+      to_port         = var.services[local.default_service_key].container_port
+      protocol        = "tcp"
+      security_groups = [aws_security_group.nlb[0].id]
+    }
+  }
+
   egress {
     from_port   = 0
     to_port     = 0

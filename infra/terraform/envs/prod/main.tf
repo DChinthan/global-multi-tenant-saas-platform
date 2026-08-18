@@ -13,6 +13,10 @@ module "vpc" {
   enable_nat               = var.enable_nat
   enable_gateway_endpoints = true
 
+  enable_interface_endpoints = true
+  enable_troubleshooting_lab = false
+  app_container_port         = 8080
+
   tags = {
     Env = var.environment
   }
@@ -118,6 +122,12 @@ module "compute" {
   lambda_zip_path    = "${path.root}/../../../../artifacts/webhook-handler.zip"
 
   alb_acm_certificate_arn = var.alb_acm_certificate_arn
+
+  enable_nlb = true
+
+  # Prod stays off by default - only turn this on deliberately with a real
+  # allow-listed consumer account, not as a default-on demo like stage.
+  enable_privatelink_endpoint_service = false
 }
 
 module "data" {

@@ -13,6 +13,10 @@ module "vpc" {
   enable_nat               = var.enable_nat
   enable_gateway_endpoints = true
 
+  enable_interface_endpoints = true
+  enable_troubleshooting_lab = false
+  app_container_port         = 8080
+
   tags = {
     Env = var.environment
   }
@@ -120,6 +124,15 @@ module "compute" {
   lambda_zip_path    = "${path.root}/../../../../artifacts/webhook-handler.zip"
 
   alb_acm_certificate_arn = var.alb_acm_certificate_arn
+
+  enable_nlb = true
+
+  # Stage is the demo environment for the PrivateLink endpoint service - the
+  # service is published (real aws_vpc_endpoint_service resource) but
+  # privatelink_allowed_principal_arns is empty, so nobody can request a
+  # connection until you add a principal ARN here.
+  enable_privatelink_endpoint_service = true
+  privatelink_allowed_principal_arns  = []
 }
 
 module "data" {

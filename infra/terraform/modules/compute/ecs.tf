@@ -113,7 +113,19 @@ resource "aws_ecs_service" "this" {
     container_port   = each.value.container_port
   }
 
-  depends_on = [aws_lb_listener.http, aws_lb_listener.https]
+  # Second target-group registration for the default service only, so the
+  # NLB in nlb.tf serves live traffic too (not just the ALB). See nlb.tf for
+  # why this service is dual-registered instead of adding another ALB rule.
+  dynamic "load_balancer" {
+    for_each = var.enable_nlb && each.key == local.default_service_key ? [aws_lb_target_group.nlb_default[0].arn] : []
+    content {
+      target_group_arn = load_balancer.value
+      container_name   = each.key
+      container_port   = each.value.container_port
+    }
+  }
+
+  depends_on = [aws_lb_listener.http, aws_lb_listener.https, aws_lb_listener.nlb_tcp]
 
   tags = local.common_tags
 }
